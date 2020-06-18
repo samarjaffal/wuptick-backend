@@ -1,12 +1,18 @@
 const express = require('express');
-const app = express();
-
 const { config } = require('./config/index');
+const { ApolloServer } = require('apollo-server-express');
+const cors = require('cors');
 
-app.get('/', function (req, res) {
-    res.send('hello world!');
-});
+const schemas = require('./lib/schemas');
+const server = new ApolloServer({ schema: schemas });
+
+const app = express();
+server.applyMiddleware({ app });
+
+app.use(cors());
 
 app.listen(config.dbPort, function () {
-    console.log(`listening http://localhost:${config.dbPort}`);
+    console.log(
+        `listening http://localhost:${config.dbPort}` + server.graphqlPath
+    );
 });
