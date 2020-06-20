@@ -12,7 +12,7 @@ module.exports = {
         return ids;
     },
 
-    getExistingIds: async (ids, collection) => {
+    getExistingIds: async (ids, collection, stringFormat = false) => {
         let existingIds;
 
         existingIds =
@@ -23,9 +23,30 @@ module.exports = {
                 : [];
         ids =
             existingIds.length > 0
-                ? existingIds.map((object) => ObjectID(object._id))
+                ? stringFormat == false
+                    ? existingIds.map((object) => ObjectID(object._id))
+                    : existingIds.map((object) => object._id.toString())
                 : [];
-
         return ids;
+    },
+
+    getExistingDocuments: async (documents, collection) => {
+        let ids, existingIds;
+        let existingDocuments;
+
+        ids = await module.exports.getIdsFromArray(documents);
+        existingIds = await module.exports.getExistingIds(
+            ids,
+            collection,
+            true
+        );
+
+        existingDocuments = documents
+            .filter((document) => existingIds.includes(document._id))
+            .map((document) => {
+                let newDocument = { ...document, _id: ObjectID(document._id) };
+                return newDocument;
+            });
+        return existingDocuments;
     },
 };
