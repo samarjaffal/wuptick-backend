@@ -30,6 +30,16 @@ module.exports = {
         return ids;
     },
 
+    getAllDocuments: async (collection, ids) => {
+        let documents =
+            ids.length > 0
+                ? await mongoDB.getAll(collection, {
+                      _id: { $in: ids },
+                  })
+                : [];
+        return documents;
+    },
+
     getExistingDocuments: async (documents, collection) => {
         let ids, existingIds;
         let existingDocuments;
