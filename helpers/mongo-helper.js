@@ -59,4 +59,18 @@ module.exports = {
             });
         return existingDocuments;
     },
+
+    FindObjectDataFromArrayWithID: (arrayData, arrayFind, idData, idFind) => {
+        let newObject =
+            arrayData.length > 0
+                ? arrayData.find((data) => {
+                      let object = arrayFind.find(
+                          (object) =>
+                              String(object[idFind]) == String(data[idData])
+                      );
+                      return object ? { ...data } : {};
+                  })
+                : {};
+        return newObject;
+    },
 };
