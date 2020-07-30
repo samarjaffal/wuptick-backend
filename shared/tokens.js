@@ -4,7 +4,7 @@ const { config } = require('../config/index');
 const createAccessToken = (user) => {
     const secret = config.secret;
     return jwt.sign({ _id: user._id, email: user.email }, secret, {
-        expiresIn: '20m',
+        expiresIn: '15m',
     });
 };
 
@@ -20,7 +20,7 @@ const createRefreshToken = (user) => {
 };
 
 const sendRefreshToken = (res, refreshToken) => {
-    console.log(res, 'res');
+    //console.log(res, 'res');
     return res.cookie('wtid', refreshToken, {
         httpOnly: true,
     });

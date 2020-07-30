@@ -7,13 +7,6 @@ const cookieParser = require('cookie-parser');
 const refreshToken = require('./routes/refreshToken');
 
 const app = express();
-app.use(cookieParser());
-
-//refresh token handle route
-refreshToken(app);
-
-const isAuth = require('./middleware/is-auth');
-app.use(isAuth);
 
 app.use(
     cors({
@@ -21,6 +14,14 @@ app.use(
         credentials: true,
     })
 );
+
+app.use(cookieParser());
+
+//refresh token handle route
+refreshToken(app);
+
+const isAuth = require('./middleware/is-auth');
+app.use(isAuth);
 
 const server = new ApolloServer({
     schema: schemas,
