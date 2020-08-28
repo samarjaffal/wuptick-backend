@@ -58,11 +58,11 @@ const generateLastActivity = async () => {
 
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
-        console.log(logs, 'logs');
-        return true;
+        //console.log(logs, 'logs');
+        return sortedLogs || null;
     } catch (error) {
         console.error(error);
-        return false;
+        return null;
     }
 };
 

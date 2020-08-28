@@ -1,3 +1,6 @@
+const MongoLib = require('../lib/db/mongo');
+const mongoDB = new MongoLib();
+
 const getUserInfo = async (userId) => {
     try {
         let user = await mongoDB.get('users', userId);
