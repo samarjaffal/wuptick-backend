@@ -59,6 +59,11 @@ const generateLastActivity = async () => {
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
         //console.log(logs, 'logs');
+
+        const query = { team: ObjectID(teamId) };
+        const data = { $set: { logs: sortedLogs } };
+        mongoDB.updateSet('activity', query, data);
+
         return sortedLogs || null;
     } catch (error) {
         console.error(error);
