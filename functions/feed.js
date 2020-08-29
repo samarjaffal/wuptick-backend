@@ -5,7 +5,7 @@ const mongoDB = new MongoLib();
 const { sortArrayByDate } = require('../helpers/data-structures');
 const { getUserInfo } = require('../helpers/user-helper');
 
-const generateLastActivity = async () => {
+const generateLastActivity = async (_teamId) => {
     let team;
     let projects, projectIds;
     let modules, tasks, taskLists, taskIds;
@@ -22,43 +22,22 @@ const generateLastActivity = async () => {
     };
 
     try {
-        const teamId = ObjectID('5ef4875caea1ea2cfccb6fba');
+        const teamId = ObjectID(_teamId);
         team = await mongoDB.get('teams', teamId);
 
         projectIds = team.projects;
-        projects = await getLastDataFromCollection({
-            ...lastDataObject,
-            ids: projectIds,
-            collection: 'projects',
-        });
+        projects = await getProjects(projectIds, lastDataObject);
         projectIds = await mongoHelper.getIdsFromArray(projects);
 
-        modules = await getLastDataFromCollection({
-            ...lastDataObject,
-            ids: projectIds,
-            queryFilter: 'project',
-            collection: 'modules',
-        });
+        modules = await getModulesWithProjectIds(projectIds, lastDataObject);
 
-        taskLists = modules[0].task_lists;
-
-        taskIds = taskLists
-            .map((list) => list.tasks.map((task) => task))
-            .flat();
-
-        tasks = await getLastDataFromCollection({
-            ...lastDataObject,
-            ids: taskIds,
-            collection: 'tasks',
-        });
+        tasks = await getTasksFromModules(modules, lastDataObject);
 
         taskLogs = await generateLog(teamId, tasks, 'task');
         projectLogs = await generateLog(teamId, projects, 'project');
         logs = [...taskLogs, ...projectLogs];
 
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
-
-        //console.log(logs, 'logs');
 
         const query = { team: ObjectID(teamId) };
         const data = { $set: { logs: sortedLogs } };
@@ -138,6 +117,45 @@ const generateLog = async (teamId, documents, type) => {
     }
 
     return logs;
+};
+
+const getTasksFromModules = async (modules, lastDataObject) => {
+    let tasks = [];
+    for (const module of modules) {
+        taskLists = module.task_lists;
+
+        taskIds = taskLists
+            .map((list) => list.tasks.map((task) => task))
+            .flat();
+
+        let tempTasks = await getLastDataFromCollection({
+            ...lastDataObject,
+            ids: taskIds,
+            collection: 'tasks',
+        });
+        tasks = [...tasks, ...tempTasks];
+    }
+
+    return tasks;
+};
+
+const getModulesWithProjectIds = async (projectIds, lastDataObject) => {
+    modules = await getLastDataFromCollection({
+        ...lastDataObject,
+        ids: projectIds,
+        queryFilter: 'project',
+        collection: 'modules',
+    });
+
+    return modules;
+};
+
+const getProjects = async (projectIds, lastDataObject) => {
+    return (projects = await getLastDataFromCollection({
+        ...lastDataObject,
+        ids: projectIds,
+        collection: 'projects',
+    }));
 };
 
 module.exports = {
