@@ -31,7 +31,7 @@ const generateLastActivity = async (_teamId) => {
 
         modules = await getModulesWithProjectIds(projectIds, lastDataObject);
 
-        tasks = await getTasksFromModules(modules, lastDataObject);
+        tasks = await getTasksFromModules(modules, lastDataObject, projects);
 
         taskLogs = await generateLog(teamId, tasks, 'task');
         projectLogs = await generateLog(teamId, projects, 'project');
@@ -113,6 +113,8 @@ const generateLog = async (teamId, documents, type) => {
         log.description = description;
         log.info = 'description' in document ? document.description : '';
         log.projectImg = type == 'project' ? document.image : '';
+        log.projectId = type == 'task' ? document.projectId : null;
+        log.projectName = type == 'task' ? document.projectName : '';
         log.name = document.name;
         log._id = document._id;
         logs = [...logs, { ...log }];
@@ -121,10 +123,14 @@ const generateLog = async (teamId, documents, type) => {
     return logs;
 };
 
-const getTasksFromModules = async (modules, lastDataObject) => {
+const getTasksFromModules = async (modules, lastDataObject, projects) => {
     let tasks = [];
     for (const module of modules) {
         taskLists = module.task_lists;
+
+        let project = projects.find((project) =>
+            module.project.equals(project._id)
+        );
 
         taskIds = taskLists
             .map((list) => list.tasks.map((task) => task))
@@ -135,7 +141,15 @@ const getTasksFromModules = async (modules, lastDataObject) => {
             ids: taskIds,
             collection: 'tasks',
         });
+
+        tempTasks = tempTasks.map((task) => ({
+            ...task,
+            projectId: project._id,
+            projectName: project.name,
+        }));
+
         tasks = [...tasks, ...tempTasks];
+        tasks;
     }
 
     return tasks;
