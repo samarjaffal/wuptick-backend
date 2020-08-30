@@ -111,6 +111,8 @@ const generateLog = async (teamId, documents, type) => {
         log.created_at = created_at;
         log.updated_at = updated_at;
         log.description = description;
+        log.info = 'description' in document ? document.description : '';
+        log.projectImg = type == 'project' ? document.image : '';
         log.name = document.name;
         log._id = document._id;
         logs = [...logs, { ...log }];
