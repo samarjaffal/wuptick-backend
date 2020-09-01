@@ -10,7 +10,8 @@ const generateLastActivity = async (_teamId) => {
     let projects, projectIds;
     let modules, tasks, taskLists, taskIds;
     let currentDate = new Date();
-    let currentMonth = currentDate.getMonth() + 1;
+    /* let currentMonth = currentDate.getMonth() + 1; */
+    let currentMonth = 8;
     let logs, sortedLogs, taskLogs, projectLogs, commentLogs;
     let lastDataObject = {
         ids: null,
@@ -36,9 +37,9 @@ const generateLastActivity = async (_teamId) => {
 
         let taskComments = await getTaskComments(tasks, lastDataObject);
 
-        taskLogs = await generateLog(teamId, tasks, 'task');
-        projectLogs = await generateLog(teamId, projects, 'project');
-        commentLogs = await generateLog(teamId, taskComments, 'comment');
+        taskLogs = await generateLog(tasks, 'task');
+        projectLogs = await generateLog(projects, 'project');
+        commentLogs = await generateLog(taskComments, 'comment');
 
         logs = [...taskLogs, ...projectLogs, ...commentLogs];
         console.log('logs', logs);
@@ -84,12 +85,11 @@ const getLastDataFromCollection = async ({
     return documents || null;
 };
 
-const generateLog = async (teamId, documents, type) => {
+const generateLog = async (documents, type) => {
     let log = {};
     let logs = [];
     let action = 'created';
 
-    log.team = teamId;
     log.type = type;
 
     let created_at, updated_at;
@@ -99,9 +99,11 @@ const generateLog = async (teamId, documents, type) => {
         //get user info
         user = await getUserInfo(document.owner);
         if (user) {
-            log.userId = document.owner;
-            log.user = `${user.name} ${user.last_name}`;
-            log.userAvatar = user.avatar;
+            log.user = {
+                userId: document.owner,
+                name: `${user.name} ${user.last_name}`,
+                avatar: user.avatar,
+            };
         }
 
         //compare dates created_at and updated_at
@@ -120,21 +122,23 @@ const generateLog = async (teamId, documents, type) => {
             log.dateFilter = updated_at;
         }
 
-        log.logId = document._id;
+        log._id = ObjectID();
         log.action = action;
         log.created_at = created_at;
         log.updated_at = updated_at;
-        log.description = description;
-        log.info = 'description' in document ? document.description : '';
-        log.projectImg = type == 'project' ? document.image : '';
-        log.projectId = type == 'task' ? document.projectId : null;
-        log.projectName = type == 'task' ? document.projectName : '';
-        if (type == 'comment') {
-            log.comment = document.comment;
-        }
-        //log.comment = type == 'comment' ? document.comment : '';
-        log.name = document.name;
-        log._id = ObjectID();
+
+        log.body = {
+            logId: document._id,
+            name: document.name,
+            description: description,
+            info: 'description' in document ? document.description : '',
+            project: {
+                projectId: 'projectId' in document ? document.projectId : null,
+                name: 'projectName' in document ? document.projectName : '',
+                image: type == 'project' ? document.image : '',
+            },
+            comment: type == 'comment' ? document.comment : null,
+        };
         logs = [...logs, { ...log }];
     }
 
@@ -228,13 +232,12 @@ const getTaskComments = async (tasks, lastDataObject) => {
             owner: com.comment.owner,
             created_at: com.comment.created_at,
             comment: {
-                ...com.comment,
+                commentId: com.comment._id,
+                comment: com.comment.comment,
             },
         };
         newComments = [...newComments, temp];
     });
-
-    //console.log('newComments', newComments);
 
     return newComments;
 };
