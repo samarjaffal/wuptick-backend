@@ -11,7 +11,7 @@ const generateLastActivity = async (_teamId) => {
     let modules, tasks, taskLists, taskIds;
     let currentDate = new Date();
     let currentMonth = currentDate.getMonth() + 1;
-    let logs, sortedLogs, taskLogs, projectLogs;
+    let logs, sortedLogs, taskLogs, projectLogs, commentLogs;
     let lastDataObject = {
         ids: null,
         dateType: '$month',
@@ -19,6 +19,7 @@ const generateLastActivity = async (_teamId) => {
         queryFilter: '_id',
         collection: null,
         limit: 3,
+        query: null,
     };
 
     try {
@@ -33,10 +34,14 @@ const generateLastActivity = async (_teamId) => {
 
         tasks = await getTasksFromModules(modules, lastDataObject, projects);
 
+        let taskComments = await getTaskComments(tasks, lastDataObject);
+
         taskLogs = await generateLog(teamId, tasks, 'task');
         projectLogs = await generateLog(teamId, projects, 'project');
-        logs = [...taskLogs, ...projectLogs];
+        commentLogs = await generateLog(teamId, taskComments, 'comment');
 
+        logs = [...taskLogs, ...projectLogs, ...commentLogs];
+        console.log('logs', logs);
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
         const query = { team: ObjectID(teamId) };
@@ -57,14 +62,22 @@ const getLastDataFromCollection = async ({
     queryFilter = _id,
     collection,
     limit,
+    query,
 }) => {
-    let documents;
+    let documents, _query;
     try {
-        const query = {
-            [queryFilter]: { $in: ids },
-            $expr: { $eq: [{ [dateType]: '$created_at' }, dateFilter] },
-        };
-        documents = await mongoDB.getAll(collection, query, false, limit);
+        if (!query) {
+            _query = {
+                [queryFilter]: { $in: ids },
+                $expr: { $eq: [{ [dateType]: '$created_at' }, dateFilter] },
+            };
+            documents = await mongoDB.getAll(collection, _query, false, limit);
+        } else {
+            _query = query;
+            documents = await mongoDB.aggregate(collection, _query);
+        }
+
+        console.log('query', query);
     } catch (error) {
         console.error(error);
     }
@@ -98,15 +111,16 @@ const generateLog = async (teamId, documents, type) => {
 
         //check if it's created, updated...
         if (updated_at == null) {
-            action = 'created';
-            description = `created a new ${type}`;
+            action = type == 'comment' ? 'added' : 'created';
+            description = `${action} a new ${type}`;
             log.dateFilter = created_at;
         } else if (updated_at > created_at) {
             action = 'updated';
-            description = `updated a ${type}`;
+            description = `${action} a ${type}`;
             log.dateFilter = updated_at;
         }
 
+        log.logId = document._id;
         log.action = action;
         log.created_at = created_at;
         log.updated_at = updated_at;
@@ -115,8 +129,12 @@ const generateLog = async (teamId, documents, type) => {
         log.projectImg = type == 'project' ? document.image : '';
         log.projectId = type == 'task' ? document.projectId : null;
         log.projectName = type == 'task' ? document.projectName : '';
+        if (type == 'comment') {
+            log.comment = document.comment;
+        }
+        //log.comment = type == 'comment' ? document.comment : '';
         log.name = document.name;
-        log._id = document._id;
+        log._id = ObjectID();
         logs = [...logs, { ...log }];
     }
 
@@ -172,6 +190,53 @@ const getProjects = async (projectIds, lastDataObject) => {
         ids: projectIds,
         collection: 'projects',
     }));
+};
+
+const getTaskComments = async (tasks, lastDataObject) => {
+    let taskIds = await mongoHelper.getIdsFromArray(tasks);
+
+    const query = [
+        { $unwind: '$comments' },
+        {
+            $project: {
+                month: { $month: '$comments.created_at' },
+                task: '$task',
+                comment: '$comments',
+            },
+        },
+        {
+            $match: {
+                task: { $in: taskIds },
+                month: lastDataObject.dateFilter,
+            },
+        },
+    ];
+    comments = await getLastDataFromCollection({
+        ...lastDataObject,
+        collection: 'comments',
+        query: query,
+    });
+    console.log('comments', comments);
+
+    let newComments = [];
+    comments.forEach((com) => {
+        let task = tasks.find((task) => com.task.equals(task._id));
+        let temp = {
+            _id: task._id,
+            name: task.name,
+            description: task.description,
+            owner: com.comment.owner,
+            created_at: com.comment.created_at,
+            comment: {
+                ...com.comment,
+            },
+        };
+        newComments = [...newComments, temp];
+    });
+
+    //console.log('newComments', newComments);
+
+    return newComments;
 };
 
 module.exports = {
