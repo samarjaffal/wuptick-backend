@@ -5,37 +5,39 @@ const mongoDB = new MongoLib();
 const { sortArrayByDate } = require('../helpers/data-structures');
 const { getUserInfo } = require('../helpers/user-helper');
 
+let team, projects, modules, tasks;
+let currentDate = new Date();
+/* let currentMonth = currentDate.getMonth() + 1; */
+let currentMonth = 8;
+let lastDataObject = {
+    ids: null,
+    dateType: '$month',
+    dateFilter: currentMonth,
+    queryFilter: '_id',
+    collection: null,
+    limit: 3,
+    query: null,
+};
+
 const generateLastActivity = async (_teamId) => {
-    let team;
-    let projects, projectIds;
-    let modules, tasks, taskLists, taskIds;
-    let currentDate = new Date();
-    /* let currentMonth = currentDate.getMonth() + 1; */
-    let currentMonth = 8;
+    let projectIds;
+    let taskLists, taskIds;
+
     let logs, sortedLogs, taskLogs, projectLogs, commentLogs;
-    let lastDataObject = {
-        ids: null,
-        dateType: '$month',
-        dateFilter: currentMonth,
-        queryFilter: '_id',
-        collection: null,
-        limit: 3,
-        query: null,
-    };
 
     try {
         const teamId = ObjectID(_teamId);
         team = await mongoDB.get('teams', teamId);
 
         projectIds = team.projects;
-        projects = await getProjects(projectIds, lastDataObject);
+        projects = await getProjects(projectIds);
         projectIds = await mongoHelper.getIdsFromArray(projects);
 
-        modules = await getModulesWithProjectIds(projectIds, lastDataObject);
+        modules = await getModulesWithProjectIds(projectIds);
 
-        tasks = await getTasksFromModules(modules, lastDataObject, projects);
+        tasks = await getTasksFromModules();
 
-        let taskComments = await getTaskComments(tasks, lastDataObject);
+        let taskComments = await getTaskComments();
 
         taskLogs = await generateLog(tasks, 'task');
         projectLogs = await generateLog(projects, 'project');
@@ -145,14 +147,12 @@ const generateLog = async (documents, type) => {
     return logs;
 };
 
-const getTasksFromModules = async (modules, lastDataObject, projects) => {
+const getTasksFromModules = async () => {
     let tasks = [];
     for (const module of modules) {
         taskLists = module.task_lists;
 
-        let project = projects.find((project) =>
-            module.project.equals(project._id)
-        );
+        let project = getProjectByModule(module._id);
 
         taskIds = taskLists
             .map((list) => list.tasks.map((task) => task))
@@ -177,7 +177,7 @@ const getTasksFromModules = async (modules, lastDataObject, projects) => {
     return tasks;
 };
 
-const getModulesWithProjectIds = async (projectIds, lastDataObject) => {
+const getModulesWithProjectIds = async (projectIds) => {
     modules = await getLastDataFromCollection({
         ...lastDataObject,
         ids: projectIds,
@@ -188,7 +188,7 @@ const getModulesWithProjectIds = async (projectIds, lastDataObject) => {
     return modules;
 };
 
-const getProjects = async (projectIds, lastDataObject) => {
+const getProjects = async (projectIds) => {
     return (projects = await getLastDataFromCollection({
         ...lastDataObject,
         ids: projectIds,
@@ -196,7 +196,7 @@ const getProjects = async (projectIds, lastDataObject) => {
     }));
 };
 
-const getTaskComments = async (tasks, lastDataObject) => {
+const getTaskComments = async () => {
     let taskIds = await mongoHelper.getIdsFromArray(tasks);
 
     const query = [
@@ -220,17 +220,19 @@ const getTaskComments = async (tasks, lastDataObject) => {
         collection: 'comments',
         query: query,
     });
-    console.log('comments', comments);
 
     let newComments = [];
     comments.forEach((com) => {
         let task = tasks.find((task) => com.task.equals(task._id));
+        let project = getProjectByTask(task._id);
         let temp = {
             _id: task._id,
             name: task.name,
             description: task.description,
             owner: com.comment.owner,
             created_at: com.comment.created_at,
+            projectId: project._id,
+            projectName: project.name,
             comment: {
                 commentId: com.comment._id,
                 comment: com.comment.comment,
@@ -240,6 +242,28 @@ const getTaskComments = async (tasks, lastDataObject) => {
     });
 
     return newComments;
+};
+
+const getProjectByModule = (moduleId) => {
+    let module;
+    module = modules.find((module) => module._id.equals(moduleId));
+
+    let project = projects.find((project) =>
+        module.project.equals(project._id)
+    );
+    console.log('getProjectByModule', project);
+    return project || null;
+};
+
+const getProjectByTask = (taskId) => {
+    let project = projects.find((project) => {
+        return modules.find((module) =>
+            module.task_lists.some((list) =>
+                list.tasks.some((task) => task.equals(taskId))
+            )
+        );
+    });
+    return project || null;
 };
 
 module.exports = {
