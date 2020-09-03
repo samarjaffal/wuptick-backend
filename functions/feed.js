@@ -45,7 +45,7 @@ const generateLastActivity = async (_teamId) => {
         commentLogs = await generateLog(taskComments, 'comment');
 
         logs = [...taskLogs, ...projectLogs, ...commentLogs];
-        console.log('logs', logs);
+        /* console.log('logs', logs); */
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
         const query = {
@@ -85,7 +85,7 @@ const getLastDataFromCollection = async ({
             documents = await mongoDB.aggregate(collection, _query);
         }
 
-        console.log('query', query);
+        /* console.log('query', query); */
     } catch (error) {
         console.error(error);
     }
@@ -256,7 +256,7 @@ const getProjectByModule = (moduleId) => {
     let project = projects.find((project) =>
         module.project.equals(project._id)
     );
-    console.log('getProjectByModule', project);
+    /* console.log('getProjectByModule', project); */
     return project || null;
 };
 
