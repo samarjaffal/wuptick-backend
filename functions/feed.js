@@ -7,8 +7,9 @@ const { getUserInfo } = require('../helpers/user-helper');
 
 let team, projects, modules, tasks;
 let currentDate = new Date();
-/* let currentMonth = currentDate.getMonth() + 1; */
-let currentMonth = 8;
+let currentMonth = currentDate.getMonth() + 1;
+/* let currentMonth = 8; */
+let currentYear = currentDate.getFullYear();
 let lastDataObject = {
     ids: null,
     dateType: '$month',
@@ -47,7 +48,11 @@ const generateLastActivity = async (_teamId) => {
         console.log('logs', logs);
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
-        const query = { team: ObjectID(teamId) };
+        const query = {
+            team: ObjectID(teamId),
+            month: currentMonth,
+            year: currentYear,
+        };
         const data = { $set: { logs: sortedLogs } };
         mongoDB.updateSet('activity', query, data);
 
