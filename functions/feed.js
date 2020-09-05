@@ -19,6 +19,7 @@ let lastDataObject = {
     limit: 3,
     query: null,
 };
+const LIMIT_REGISTERS = 20;
 
 const generateLastActivity = async (_teamId) => {
     let projectIds;
@@ -28,33 +29,32 @@ const generateLastActivity = async (_teamId) => {
 
     try {
         const teamId = ObjectID(_teamId);
+
+        //get team
         team = await mongoDB.get('teams', teamId);
 
+        //get projects from team
         projectIds = team.projects;
         projects = await getProjects(projectIds);
-        projectIds = await mongoHelper.getIdsFromArray(projects);
 
         modules = await getModulesWithProjectIds(projectIds);
+        /* console.log(modules, 'modules'); */
 
         tasks = await getTasksFromModules();
+        /* console.log(tasks, 'tasks'); */
 
         let taskComments = await getTaskComments();
+        /* console.log(taskComments, 'taskComments'); */
 
         taskLogs = await generateLog(tasks, 'task');
+        /* console.log(taskLogs, 'taskLogs'); */
         projectLogs = await generateLog(projects, 'project');
+        /* console.log(projectLogs, 'projectLogs'); */
         commentLogs = await generateLog(taskComments, 'comment');
+        /* console.log(commentLogs, 'commentLogs'); */
 
         logs = [...taskLogs, ...projectLogs, ...commentLogs];
-        /* console.log('logs', logs); */
         sortedLogs = sortArrayByDate(logs, 'dateFilter');
-
-        const query = {
-            team: ObjectID(teamId),
-            month: currentMonth,
-            year: currentYear,
-        };
-        const data = { $set: { logs: sortedLogs } };
-        mongoDB.updateSet('activity', query, data);
 
         return sortedLogs || null;
     } catch (error) {
@@ -153,62 +153,69 @@ const generateLog = async (documents, type) => {
 };
 
 const getTasksFromModules = async () => {
-    let tasks = [];
-    for (const module of modules) {
-        taskLists = module.task_lists;
+    moduleIds = await mongoHelper.getIdsFromArray(modules);
+    /* console.log(moduleIds, 'moduleIds'); */
+    const query = {
+        module: { $in: moduleIds },
+    };
+    const sort = { updated_at: -1, created_at: -1 };
+    let tasks = await mongoDB.getAll(
+        'tasks',
+        query,
+        false,
+        LIMIT_REGISTERS,
+        sort
+    );
 
-        let project = getProjectByModule(module._id);
-
-        taskIds = taskLists
-            .map((list) => list.tasks.map((task) => task))
-            .flat();
-
-        let tempTasks = await getLastDataFromCollection({
-            ...lastDataObject,
-            ids: taskIds,
-            collection: 'tasks',
-        });
-
-        tempTasks = tempTasks.map((task) => ({
-            ...task,
-            projectId: project._id,
-            projectName: project.name,
-        }));
-
-        tasks = [...tasks, ...tempTasks];
-        tasks;
-    }
-
-    return tasks;
+    let newTasks = tasks.map((task) => {
+        let project = getProjectByModule(task.module);
+        return { ...task, projectId: project._id, projectName: project.name };
+    });
+    return newTasks;
 };
 
 const getModulesWithProjectIds = async (projectIds) => {
-    modules = await getLastDataFromCollection({
-        ...lastDataObject,
-        ids: projectIds,
-        queryFilter: 'project',
-        collection: 'modules',
-    });
-
-    return modules;
+    const query = {
+        project: { $in: projectIds },
+    };
+    const sort = { updated_at: -1, created_at: -1 };
+    let modules = await mongoDB.getAll(
+        'modules',
+        query,
+        false,
+        LIMIT_REGISTERS,
+        sort
+    );
+    return modules || [];
 };
 
 const getProjects = async (projectIds) => {
-    return (projects = await getLastDataFromCollection({
-        ...lastDataObject,
-        ids: projectIds,
-        collection: 'projects',
-    }));
+    const query = {
+        _id: { $in: projectIds },
+    };
+    const sort = { updated_at: -1, created_at: -1 };
+    let projects = await mongoDB.getAll(
+        'projects',
+        query,
+        false,
+        LIMIT_REGISTERS,
+        sort
+    );
+    return projects || [];
 };
 
 const getTaskComments = async () => {
+    moduleIds = await mongoHelper.getIdsFromArray(modules);
+    const query = {
+        module: { $in: moduleIds },
+    };
+    let tasks = await mongoDB.getAll('tasks', query);
     let taskIds = await mongoHelper.getIdsFromArray(tasks);
 
-    const query = [
+    const queryAggregate = [
         { $unwind: '$comments' },
         {
             $project: {
-                month: { $month: '$comments.created_at' },
                 task: '$task',
                 comment: '$comments',
             },
@@ -216,37 +223,38 @@ const getTaskComments = async () => {
         {
             $match: {
                 task: { $in: taskIds },
-                month: lastDataObject.dateFilter,
             },
         },
+        { $sort: { 'comments.updated_at': -1, 'comments.created_at': -1 } },
+        { $limit: LIMIT_REGISTERS },
     ];
-    comments = await getLastDataFromCollection({
-        ...lastDataObject,
-        collection: 'comments',
-        query: query,
-    });
 
-    let newComments = [];
-    comments.forEach((com) => {
-        let task = tasks.find((task) => com.task.equals(task._id));
-        let project = getProjectByTask(task._id);
+    let documents = await mongoDB.aggregate('comments', queryAggregate);
+
+    /* console.log(documents, 'documents'); */
+
+    let comments = [];
+
+    documents.forEach((document) => {
+        let task = tasks.find((task) => document.task.equals(task._id));
+        let project = getProjectByModule(task.module);
         let temp = {
             _id: task._id,
             name: task.name,
             description: task.description,
-            owner: com.comment.owner,
-            created_at: com.comment.created_at,
+            owner: document.comment.owner,
+            created_at: document.comment.created_at,
             projectId: project._id,
             projectName: project.name,
             comment: {
-                commentId: com.comment._id,
-                comment: com.comment.comment,
+                commentId: document.comment._id,
+                comment: document.comment.comment,
             },
         };
-        newComments = [...newComments, temp];
+        comments = [...comments, temp];
     });
 
-    return newComments;
+    return comments;
 };
 
 const getProjectByModule = (moduleId) => {
@@ -261,6 +269,7 @@ const getProjectByModule = (moduleId) => {
 };
 
 const getProjectByTask = (taskId) => {
+    /* console.log(projects, taskId, 'getProjectByTask'); */
     let project = projects.find((project) => {
         return modules.find((module) =>
             module.task_lists.some((list) =>
