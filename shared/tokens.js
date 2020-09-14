@@ -3,9 +3,18 @@ const { config } = require('../config/index');
 
 const createAccessToken = (user) => {
     const secret = config.secret;
-    return jwt.sign({ _id: user._id, email: user.email }, secret, {
-        expiresIn: '15m',
-    });
+    return jwt.sign(
+        {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            last_name: user.last_name,
+        },
+        secret,
+        {
+            expiresIn: '15m',
+        }
+    );
 };
 
 const createRefreshToken = (user) => {
