@@ -109,6 +109,8 @@ const generateLog = async (documents, type) => {
             log.user = {
                 userId: document.owner,
                 name: `${user.name} ${user.last_name}`,
+                firstName: `${user.name}`,
+                lastName: `${user.last_name}`,
                 avatar: user.avatar,
             };
         }
