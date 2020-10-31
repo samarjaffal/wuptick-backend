@@ -73,4 +73,30 @@ module.exports = {
                 : {};
         return newObject;
     },
+
+    addUniqueElementToArray: async (collection, queryId, key, notMatchId) => {
+        try {
+            const query = {
+                _id: queryId,
+                [key]: {
+                    $not: {
+                        $elemMatch: { $eq: notMatchId },
+                    },
+                },
+            };
+
+            const data = { $addToSet: { [key]: notMatchId } };
+            let updatedDocument = await mongoDB.findOneAndUpdate(
+                collection,
+                query,
+                data
+            );
+            const result =
+                updatedDocument !== null ? updatedDocument._id : null;
+            return result;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    },
 };
