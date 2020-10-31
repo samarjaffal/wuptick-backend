@@ -93,10 +93,34 @@ module.exports = {
             );
             const result =
                 updatedDocument !== null ? updatedDocument._id : null;
+
+            console.log(`${collection} updated`);
             return result;
         } catch (error) {
             console.error(error);
-            return null;
+            throw new Error(error);
         }
     },
+    /* 
+    rollbackChecker: async (dataA, dataB) => {
+        if (dataA.id !== null && dataB.id !== null) return true;
+
+        try {
+            await mongoDB.removeFromSet(
+                dataA.collection,
+                dataA.id,
+                dataA.query
+            );
+
+            await mongoDB.removeFromSet(
+                dataB.collection,
+                dataB.id,
+                dataB.query
+            );
+            return false;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error, 'rollbackChecker');
+        }
+    }, */
 };
