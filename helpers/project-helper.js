@@ -5,12 +5,14 @@ const mongoHelper = require('./mongo-helper');
 module.exports = {
     addMemberToProject: async (member, projectId) => {
         try {
-            await mongoHelper.addUniqueElementToArray(
+            let memberId = await mongoHelper.addUniqueElementToArray(
                 'projects',
                 ObjectID(projectId),
                 'members',
                 member
             );
+
+            return memberId || null;
         } catch (error) {
             console.log(error);
             throw new Error(error);
