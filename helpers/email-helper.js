@@ -1,13 +1,7 @@
 const { client } = require('../config/email');
 
 module.exports = {
-    sendEmail: async () => {
-        let email = {
-            from: '"Wuptick Team" <dev.wuptick@gmail.com>', // sender address
-            to: 'samarjaffalh@gmail.com', // list of receivers
-            subject: 'You have been added to a new Project', // Subject line
-            html: '<b>Hello world</b>', // html body
-        };
+    sendEmail: async (email) => {
         try {
             client.sendMail(email, function (err, info) {
                 if (err) {

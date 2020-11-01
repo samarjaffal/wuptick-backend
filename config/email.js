@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
+
 const { config } = require('./index');
 
 const options = {
