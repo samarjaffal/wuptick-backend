@@ -13,6 +13,7 @@ const config = {
     mailPort: process.env.MAIL_PORT,
     mailUser: process.env.MAIL_USERNAME,
     mailPassword: process.env.MAIL_PASSWORD,
+    frontURL: process.env.FRONT_APP_URL,
 };
 
 module.exports = { config };
