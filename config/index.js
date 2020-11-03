@@ -9,6 +9,7 @@ const config = {
     dbPort: process.env.DB_PORT || 3000,
     secret: process.env.S_KEY,
     rfToken: process.env.RT_KEY,
+    emailSecret: process.env.EMAIL_SECRET,
     mailHost: process.env.MAIL_HOST,
     mailPort: process.env.MAIL_PORT,
     mailUser: process.env.MAIL_USERNAME,

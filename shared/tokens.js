@@ -28,6 +28,19 @@ const createRefreshToken = (user) => {
     );
 };
 
+const createEmailToken = (data) => {
+    const secret = config.emailSecret;
+    return jwt.sign(
+        {
+            ...data,
+        },
+        secret,
+        {
+            expiresIn: '1d',
+        }
+    );
+};
+
 const sendRefreshToken = (res, refreshToken) => {
     //console.log(res, 'res');
     return res.cookie('wtid', refreshToken, {
@@ -38,5 +51,6 @@ const sendRefreshToken = (res, refreshToken) => {
 module.exports = {
     createAccessToken,
     createRefreshToken,
+    createEmailToken,
     sendRefreshToken,
 };
