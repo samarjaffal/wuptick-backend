@@ -2,6 +2,7 @@ const MongoLib = require('../lib/db/mongo');
 const { ObjectID } = require('mongodb');
 const mongoDB = new MongoLib();
 const mongoHelper = require('./mongo-helper');
+const Project = require('./project-helper');
 
 const getUserInfo = async (userId) => {
     try {
@@ -36,4 +37,28 @@ const addUserToTeam = async (userId, teamId) => {
     }
 };
 
-module.exports = { getUserInfo, addUserToTeam };
+const addNewMember = async (userId, teamId, projectId) => {
+    try {
+        await addUserToTeam(String(userId), String(teamId));
+
+        let role = await mongoDB.findOne('roles', {
+            name: 'member',
+        });
+
+        let member = {
+            user: userId,
+            role: role._id,
+            team: ObjectID(teamId),
+        };
+        let memberAdded = await Project.addMemberToProject(
+            member,
+            String(projectId)
+        );
+        console.log(memberAdded, 'memberAdded');
+        return memberAdded;
+    } catch (error) {
+        throw new Error(error);
+    }
+};
+
+module.exports = { getUserInfo, addUserToTeam, addNewMember };
