@@ -5,6 +5,7 @@ const cors = require('cors');
 const schemas = require('./lib/schemas');
 const cookieParser = require('cookie-parser');
 const refreshToken = require('./routes/refreshToken');
+const confirmRegistration = require('./routes/confirmRegistration');
 
 const app = express();
 
@@ -19,6 +20,9 @@ app.use(cookieParser());
 
 //refresh token handle route
 refreshToken(app);
+
+//confirm registration handle route
+confirmRegistration(app);
 
 const isAuth = require('./middleware/is-auth');
 app.use(isAuth);

@@ -15,6 +15,7 @@ const config = {
     mailUser: process.env.MAIL_USERNAME,
     mailPassword: process.env.MAIL_PASSWORD,
     frontURL: process.env.FRONT_APP_URL,
+    appURL: process.env.APP_URL,
 };
 
 module.exports = { config };
