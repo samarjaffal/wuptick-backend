@@ -11,7 +11,7 @@ const status = {
 const defaults = {
     email: '',
     created_at: '',
-    updated_at: '',
+    updated_at: null,
     status: status.invited,
 };
 
