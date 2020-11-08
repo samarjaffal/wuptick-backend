@@ -19,7 +19,8 @@ module.exports = {
     createInvitation: async (data) => {
         try {
             let newData = { ...defaults, ...data };
-            return await mongoDB.create(collection, newData);
+            let invitationId = await mongoDB.create(collection, newData);
+            return { ...newData, _id: invitationId } || null;
         } catch (error) {
             throw new Error(error);
         }
