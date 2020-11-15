@@ -55,7 +55,7 @@ const addNewMember = async (userId, teamId, projectId) => {
             String(projectId)
         );
         console.log(memberAdded, 'memberAdded');
-        return memberAdded;
+        return member;
     } catch (error) {
         throw new Error(error);
     }
