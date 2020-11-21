@@ -116,9 +116,11 @@ const generateLog = async (documents, type) => {
         }
 
         //compare dates created_at and updated_at
-        created_at = new Date(document.created_at);
+        created_at = new Date(document.created_at.toString());
         updated_at =
-            'updated_at' in document ? new Date(document.updated_at) : null;
+            'updated_at' in document && document.updated_at !== null
+                ? new Date(document.updated_at.toString())
+                : null;
 
         //check if it's created, updated...
         if (updated_at == null) {

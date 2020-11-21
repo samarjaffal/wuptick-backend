@@ -33,7 +33,7 @@ module.exports = {
                 { email },
                 {
                     status: status.registered,
-                    updated_at: new Date().toISOString(),
+                    updated_at: new Date(),
                 }
             );
             return result ? true : false;
