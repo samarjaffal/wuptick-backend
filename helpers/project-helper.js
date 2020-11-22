@@ -31,6 +31,27 @@ module.exports = {
         }
     },
 
+    editProject: async (projectId, input) => {
+        let project;
+        try {
+            input.updated_at = new Date();
+            let inputData = { ...input };
+            if ('tag' in inputData) {
+                inputData.tag = ObjectID(inputData.tag._id);
+            }
+            project = await crudHelper.edit(
+                collection,
+                projectId,
+                inputData,
+                'project'
+            );
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+        return project;
+    },
+
     addMemberToProject: async (member, projectId) => {
         try {
             let memberId = await mongoHelper.addUniqueElementToArray(
