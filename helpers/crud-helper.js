@@ -31,17 +31,17 @@ module.exports = {
     },
 
     delete: async (collection, id, name) => {
-        let document, deletedDocument;
+        let deletedId;
 
         try {
-            document = await mongoDB.get(collection, id);
-            if (!document) throw new Error(`The ${name} doesn't exist`);
-            await mongoDB.delete(collection, id);
-            deletedDocument = { ...document };
+            /*  document = await mongoDB.get(collection, id);
+            if (!document) throw new Error(`The ${name} doesn't exist`); */
+            deletedId = await mongoDB.delete(collection, id);
         } catch (error) {
             console.error(error);
+            throw new Error(`Error deleting ${name}: ${id} on ${collection}`);
         }
-        return deletedDocument;
+        return deletedId || null;
     },
 
     addSet: async (collection, id, _operator, name) => {
@@ -64,15 +64,16 @@ module.exports = {
     },
 
     removeSet: async (collection, id, name, operator) => {
-        let document;
+        let removedId;
         try {
-            document = await mongoDB.get(collection, id);
+            /*  document = await mongoDB.get(collection, id);
             if (!document) throw new Error(`The ${name} doesn't exist`);
-
-            await mongoDB.removeFromSet(collection, id, operator);
+ */
+            removedId = await mongoDB.removeFromSet(collection, id, operator);
         } catch (error) {
             console.error(error);
+            throw new Error(`Error removing ${name}: ${id} on ${collection} `);
         }
-        return document;
+        return removedId;
     },
 };

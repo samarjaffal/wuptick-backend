@@ -52,6 +52,14 @@ module.exports = {
         return project;
     },
 
+    deleteProject: async (projectId, teamId) => {
+        let removed = await Team.removeProject(teamId, projectId);
+        if (removed) {
+            await crudHelper.delete(collection, projectId, 'project');
+        }
+        return projectId;
+    },
+
     addMemberToProject: async (member, projectId) => {
         try {
             let memberId = await mongoHelper.addUniqueElementToArray(

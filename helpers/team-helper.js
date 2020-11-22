@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
 
-const collection = 'projects';
+const collection = 'teams';
 
 module.exports = {
     addProject: async (teamId, projectId) => {
@@ -11,7 +11,7 @@ module.exports = {
             let updatedId;
             //add teamId to teams array in user if teams not exists
             updatedId = await mongoHelper.addUniqueElementToArray(
-                'teams',
+                collection,
                 teamId,
                 'projects',
                 ObjectID(projectId)
@@ -21,5 +21,17 @@ module.exports = {
             console.log(error);
             throw new Error(error);
         }
+    },
+
+    removeProject: async (teamId, projectId) => {
+        let removedId;
+        const operator = { projects: ObjectID(projectId) };
+        removedId = await crudHelper.removeSet(
+            collection,
+            teamId,
+            'team',
+            operator
+        );
+        return removedId;
     },
 };
