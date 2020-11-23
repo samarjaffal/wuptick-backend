@@ -16,6 +16,8 @@ const defaults = {
     tag: null,
 };
 
+const mongoDB = new MongoLib();
+
 module.exports = {
     createProject: async (input) => {
         try {
@@ -24,6 +26,18 @@ module.exports = {
             input.created_at = new Date();
             let project = await crudHelper.create(collection, input, defaults);
             await Team.addProject(project.team_owner, project._id);
+
+            let role = await mongoDB.findOne('roles', {
+                name: 'member',
+            });
+
+            let member = {
+                user: project.owner,
+                role: role._id,
+                team: project.team_owner,
+            };
+
+            await module.exports.addMemberToProject(member, project._id);
             return project;
         } catch (error) {
             console.log(error);
@@ -62,6 +76,8 @@ module.exports = {
 
     addMemberToProject: async (member, projectId) => {
         try {
+            projectId = String(projectId);
+
             let memberId = await mongoHelper.addUniqueElementToArray(
                 'projects',
                 ObjectID(projectId),
