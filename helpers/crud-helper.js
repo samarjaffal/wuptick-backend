@@ -26,6 +26,7 @@ module.exports = {
             document = { ...document, ...input };
         } catch (error) {
             console.error(error);
+            throw new Error(error);
         }
         return document;
     },
