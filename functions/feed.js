@@ -144,7 +144,8 @@ const generateLog = async (documents, type) => {
             description: description,
             info: 'description' in document ? document.description : '',
             project: {
-                projectId: 'projectId' in document ? document.projectId : null,
+                projectId:
+                    'projectId' in document ? document.projectId : document._id,
                 name: 'projectName' in document ? document.projectName : '',
                 image: type == 'project' ? document.image : '',
             },
