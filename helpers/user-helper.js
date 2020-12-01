@@ -19,7 +19,7 @@ const addUserToTeam = async (userId, teamId) => {
         //add teamId to teams array in user if teams not exists
         updatedUserTeamID = await mongoHelper.addUniqueElementToArray(
             'users',
-            userId,
+            ObjectID(userId),
             'teams',
             ObjectID(teamId)
         );

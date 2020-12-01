@@ -9,6 +9,7 @@ const createAccessToken = (user) => {
             email: user.email,
             name: user.name,
             last_name: user.last_name,
+            user_attempts: user.user_attempts,
         },
         secret,
         {
