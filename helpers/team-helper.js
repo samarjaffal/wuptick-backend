@@ -4,6 +4,7 @@ const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
 
 const collection = 'teams';
+const mongoDB = new MongoLib();
 
 module.exports = {
     addProject: async (teamId, projectId) => {
@@ -33,5 +34,38 @@ module.exports = {
             operator
         );
         return removedId;
+    },
+
+    removeMemberFromTeam: async (teamId, userId) => {
+        let projectIds, team;
+
+        try {
+            team = await mongoDB.get(collection, teamId);
+
+            if (!team) {
+                return false;
+            }
+
+            projectIds = [...team.projects];
+
+            console.log(projectIds, 'projectIds');
+
+            if (projectIds.length > 0) {
+                let query = { _id: { $in: projectIds } };
+                let operator = {
+                    $pull: { members: { user: ObjectID(userId) } },
+                };
+                await mongoDB.updateMany('projects', query, operator);
+            }
+
+            await crudHelper.removeSet(collection, teamId, 'teams', {
+                members: ObjectID(userId),
+            });
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
     },
 };
