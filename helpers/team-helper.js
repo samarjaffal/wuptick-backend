@@ -6,7 +6,19 @@ const crudHelper = require('./crud-helper');
 const collection = 'teams';
 const mongoDB = new MongoLib();
 
+const defaults = {
+    owner: null,
+    projects: [],
+    members: [],
+};
+
 module.exports = {
+    editTeam: async (teamId, input) => {
+        let team;
+        team = await crudHelper.edit(collection, teamId, input, 'team');
+        return team;
+    },
+
     addProject: async (teamId, projectId) => {
         try {
             let updatedId;
@@ -46,6 +58,7 @@ module.exports = {
                 return false;
             }
 
+            //remove member from projects
             if ('projects' in team && team.projects.length > 0) {
                 projectIds = [...team.projects];
 
@@ -58,10 +71,12 @@ module.exports = {
                 }
             }
 
+            //remove team from a member
             await crudHelper.removeSet('users', userId, 'users', {
                 teams: ObjectID(teamId),
             });
 
+            //remove member from team
             await crudHelper.removeSet(collection, teamId, 'teams', {
                 members: ObjectID(userId),
             });
@@ -83,6 +98,7 @@ module.exports = {
                 return false;
             }
 
+            //remove team projects
             if ('projects' in team && team.projects.length > 0) {
                 projectIds = [...team.projects];
                 if (projectIds.length > 0) {
@@ -91,6 +107,7 @@ module.exports = {
                 }
             }
 
+            //remove team from a member
             if ('members' in team && team.members.length > 0) {
                 members = [...team.members];
 
@@ -103,7 +120,9 @@ module.exports = {
                 }
             }
 
+            //delete team
             await mongoDB.delete(collection, teamId);
+
             return true;
         } catch (error) {
             console.log(error);
