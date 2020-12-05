@@ -46,16 +46,16 @@ module.exports = {
                 return false;
             }
 
-            projectIds = [...team.projects];
+            if ('projects' in team && team.projects.length > 0) {
+                projectIds = [...team.projects];
 
-            console.log(projectIds, 'projectIds');
-
-            if (projectIds.length > 0) {
-                let query = { _id: { $in: projectIds } };
-                let operator = {
-                    $pull: { members: { user: ObjectID(userId) } },
-                };
-                await mongoDB.updateMany('projects', query, operator);
+                if (projectIds.length > 0) {
+                    let query = { _id: { $in: projectIds } };
+                    let operator = {
+                        $pull: { members: { user: ObjectID(userId) } },
+                    };
+                    await mongoDB.updateMany('projects', query, operator);
+                }
             }
 
             await crudHelper.removeSet(collection, teamId, 'teams', {
