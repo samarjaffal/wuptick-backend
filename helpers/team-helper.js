@@ -2,9 +2,10 @@ const MongoLib = require('../lib/db/mongo');
 const { ObjectID } = require('mongodb');
 const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
+const TeamUser = require('./team-user');
+const teamUser = require('./team-user');
 
 const collection = 'teams';
-const mongoDB = new MongoLib();
 
 const defaults = {
     owner: null,
@@ -12,9 +13,23 @@ const defaults = {
     members: [],
 };
 
+const mongoDB = new MongoLib();
+
+teamUser.test();
 module.exports = {
+    createTeam: async (input) => {
+        let team;
+        input.owner = ObjectID(input.owner._id);
+        input.created_at = new Date();
+        team = await crudHelper.create(collection, input, defaults);
+        team = { ...team, ...input };
+        await TeamUser.addUserToTeam(String(input.owner), String(team._id));
+        return team;
+    },
+
     editTeam: async (teamId, input) => {
         let team;
+        input.updated_at = new Date();
         team = await crudHelper.edit(collection, teamId, input, 'team');
         return team;
     },

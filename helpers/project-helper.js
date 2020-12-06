@@ -2,6 +2,7 @@ const MongoLib = require('../lib/db/mongo');
 const { ObjectID } = require('mongodb');
 const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
+const UserProject = require('./user-project');
 const Team = require('./team-helper');
 
 const collection = 'projects';
@@ -37,7 +38,7 @@ module.exports = {
                 team: project.team_owner,
             };
 
-            await module.exports.addMemberToProject(member, project._id);
+            await UserProject.addMemberToProject(member, project._id);
             return project;
         } catch (error) {
             console.log(error);
@@ -72,23 +73,5 @@ module.exports = {
             await crudHelper.delete(collection, projectId, 'project');
         }
         return projectId;
-    },
-
-    addMemberToProject: async (member, projectId) => {
-        try {
-            projectId = String(projectId);
-
-            let memberId = await mongoHelper.addUniqueElementToArray(
-                'projects',
-                ObjectID(projectId),
-                'members',
-                member
-            );
-
-            return memberId || null;
-        } catch (error) {
-            console.log(error);
-            throw new Error(error);
-        }
     },
 };
