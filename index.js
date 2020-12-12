@@ -39,8 +39,8 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app, cors: false });
 
-app.listen(config.dbPort, function () {
+app.listen(config.port, function () {
     console.log(
-        `listening http://localhost:${config.dbPort}` + server.graphqlPath
+        `listening http://localhost:${config.port}` + server.graphqlPath
     );
 });
