@@ -16,6 +16,8 @@ const config = {
     mailPassword: process.env.MAIL_PASSWORD,
     frontURL: process.env.FRONT_APP_URL,
     appURL: process.env.APP_URL,
+    appDBCredentials: process.env.APP_DB_CREDENTIALS,
+    appEnv: process.env.APP_ENV,
     port: process.env.PORT,
 };
 
