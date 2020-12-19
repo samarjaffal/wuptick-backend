@@ -1,7 +1,8 @@
 const MongoLib = require('../lib/db/mongo');
-const { ObjectID } = require('mongodb');
+const mongoDB = new MongoLib();
 const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
+const { ObjectID } = require('mongodb');
 
 const collection = 'modules';
 
@@ -23,5 +24,15 @@ module.exports = {
         let module;
         module = await crudHelper.edit(collection, moduleId, input, 'module');
         return module;
+    },
+
+    getModule: async (moduleId) => {
+        let module;
+        try {
+            module = await mongoDB.get(collection, moduleId);
+        } catch (error) {
+            console.error(error);
+        }
+        return module || {};
     },
 };
