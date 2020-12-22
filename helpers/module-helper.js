@@ -35,4 +35,16 @@ module.exports = {
         }
         return module || {};
     },
+
+    saveTaskListsOrder: async (moduleId, taskLists) => {
+        try {
+            let data = { task_lists: taskLists };
+
+            await mongoDB.update(collection, moduleId, data);
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+        return true;
+    },
 };
