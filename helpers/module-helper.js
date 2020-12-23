@@ -47,4 +47,22 @@ module.exports = {
         }
         return true;
     },
+
+    addTaskList: async (moduleId, name) => {
+        let module;
+        const operator = {
+            format: {
+                task_lists: { _id: ObjectID(), name, tasks: [] },
+            },
+            key: 'task_lists',
+            set: 'task_lists',
+        };
+        module = await crudHelper.addSet(
+            collection,
+            moduleId,
+            operator,
+            'module'
+        );
+        return module.task_lists[0];
+    },
 };
