@@ -15,7 +15,6 @@ const defaults = {
 
 const mongoDB = new MongoLib();
 
-teamUser.test();
 module.exports = {
     createTeam: async (input) => {
         let team;
