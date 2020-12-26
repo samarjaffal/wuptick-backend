@@ -15,4 +15,16 @@ module.exports = {
 
         return tasks || [];
     },
+
+    assignTask: async (taskId, userId) => {
+        try {
+            await mongoDB.update(collection, taskId, {
+                assigned: ObjectID(userId),
+            });
+            return userId;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
+    },
 };
