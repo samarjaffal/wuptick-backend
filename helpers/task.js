@@ -17,9 +17,11 @@ module.exports = {
     },
 
     assignTask: async (taskId, userId) => {
+        const assigned = userId !== null ? ObjectID(userId) : null;
+
         try {
             await mongoDB.update(collection, taskId, {
-                assigned: ObjectID(userId),
+                assigned: assigned,
             });
             return userId;
         } catch (error) {
