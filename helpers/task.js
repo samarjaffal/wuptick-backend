@@ -29,4 +29,18 @@ module.exports = {
             throw new Error(error);
         }
     },
+
+    addDeadlineToTask: async (taskId, date) => {
+        let newDate = date !== null ? new Date(date).toISOString() : null;
+        try {
+            await mongoDB.update(collection, taskId, {
+                deadline: newDate,
+            });
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
+
+        return true;
+    },
 };
