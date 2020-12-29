@@ -1,9 +1,34 @@
 const MongoLib = require('../lib/db/mongo');
+const Module = require('./module-helper');
 const mongoDB = new MongoLib();
+const crudHelper = require('./crud-helper');
 const collection = 'tasks';
 const { ObjectID } = require('mongodb');
 
+const defaults = {
+    description: '',
+    deadline: '',
+    assigned: null,
+    tag: null,
+    estimated_time: '',
+    priority: false,
+    url: '',
+    done: false,
+    collaborators: [],
+};
+
 module.exports = {
+    createTask: async (input, moduleId, listId, userId) => {
+        let task;
+        input.owner = ObjectID(userId);
+        /* if ('assigned' in input) input.assigned = ObjectID(input.assigned._id);
+        if ('tag' in input) input.tag = ObjectID(input.tag._id); */
+        input.created_at = new Date();
+        task = await crudHelper.create(collection, input, defaults);
+        await Module.addTask(moduleId, listId, String(task._id));
+        return task._id;
+    },
+
     getTasks: async (moduleId) => {
         let tasks;
         try {

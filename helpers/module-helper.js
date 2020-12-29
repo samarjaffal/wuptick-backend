@@ -38,7 +38,17 @@ module.exports = {
 
     saveTaskListsOrder: async (moduleId, taskLists) => {
         try {
-            let data = { task_lists: taskLists };
+            let formatedLists = taskLists.map((list) => {
+                let newTasks = list.tasks.map((task) => ObjectID(task));
+                let newList = {
+                    ...list,
+                    _id: ObjectID(list._id),
+                    tasks: [...newTasks],
+                };
+                return newList;
+            });
+
+            let data = { task_lists: formatedLists };
 
             await mongoDB.update(collection, moduleId, data);
         } catch (error) {
@@ -64,5 +74,19 @@ module.exports = {
             'module'
         );
         return module.task_lists[0];
+    },
+
+    addTask: async (moduleId, listId, taskId) => {
+        try {
+            let query = {
+                _id: ObjectID(moduleId),
+                'task_lists._id': ObjectID(listId),
+            };
+            let data = { $push: { 'task_lists.$.tasks': ObjectID(taskId) } };
+            await mongoDB.updateSet(collection, query, data);
+        } catch (error) {
+            console.error(error);
+        }
+        return true;
     },
 };
