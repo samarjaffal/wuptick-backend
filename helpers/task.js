@@ -29,6 +29,20 @@ module.exports = {
         return task._id;
     },
 
+    editTask: async (taskId, input) => {
+        let task;
+        try {
+            let inputData = { ...input };
+            if ('tag' in inputData) inputData.tag = ObjectID(inputData.tag._id);
+            if ('assigned' in inputData)
+                inputData.assigned = ObjectID(input.assigned._id);
+            task = await crudHelper.edit(collection, taskId, inputData, 'task');
+        } catch (error) {
+            console.error(error);
+        }
+        return task;
+    },
+
     getTasks: async (moduleId) => {
         let tasks;
         try {
