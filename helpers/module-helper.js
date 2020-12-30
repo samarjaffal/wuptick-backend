@@ -89,4 +89,18 @@ module.exports = {
         }
         return true;
     },
+
+    removeTaskFromList: async (moduleId, listId, taskId) => {
+        try {
+            let query = {
+                _id: ObjectID(moduleId),
+                'task_lists._id': ObjectID(listId),
+            };
+            let data = { $pull: { 'task_lists.$.tasks': ObjectID(taskId) } };
+            await mongoDB.updateSet(collection, query, data);
+        } catch (error) {
+            console.error(error);
+        }
+        return true;
+    },
 };

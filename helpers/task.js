@@ -82,4 +82,10 @@ module.exports = {
 
         return true;
     },
+
+    deleteTask: async (taskId, listId, moduleId) => {
+        await Module.removeTaskFromList(moduleId, listId, taskId);
+        await crudHelper.delete(collection, taskId, 'task');
+        return true;
+    },
 };
