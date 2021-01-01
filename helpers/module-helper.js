@@ -103,4 +103,32 @@ module.exports = {
         }
         return true;
     },
+
+    removeTaskList: async (moduleId, listId) => {
+        let module;
+
+        try {
+            module = await mongoDB.get(collection, moduleId);
+            const list = module.task_lists.find((list) => list._id == listId);
+            const taskIds = [...list.tasks];
+
+            if (taskIds.length > 0) {
+                let query = { _id: { $in: taskIds } };
+                await mongoDB.deleteMany('tasks', query);
+            }
+
+            const operator = { task_lists: { _id: ObjectID(listId) } };
+            await crudHelper.removeSet(
+                collection,
+                moduleId,
+                'module',
+                operator
+            );
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+
+        return module._id;
+    },
 };
