@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 
 const defaults = {
     description: '',
+    descriptionJson: '',
     deadline: '',
     assigned: null,
     tag: null,
