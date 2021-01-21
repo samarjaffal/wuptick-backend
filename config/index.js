@@ -19,6 +19,9 @@ const config = {
     appDBCredentials: process.env.APP_DB_CREDENTIALS,
     appEnv: process.env.APP_ENV,
     port: process.env.PORT,
+    cloudinaryName: process.env.CLOUDINARY_NAME,
+    clodinaryApiKey: process.env.CLOUDINARY_API_KEY,
+    cloudinaryApiSecret: process.env.CLOUDDINARY_API_SECRET,
 };
 
 module.exports = { config };
