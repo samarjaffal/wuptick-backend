@@ -1,5 +1,6 @@
 const express = require('express');
 const MongoLib = require('../lib/db/mongo');
+const { isValidToken } = require('../functions/auth');
 const { ObjectID } = require('mongodb');
 const { cloudinary } = require('../utils/cloudinary');
 
@@ -12,14 +13,17 @@ const uploadEditorImage = (app) => {
     router.post('/upload_editor_image', async (req, res) => {
         try {
             const fileStr = req.body.data;
-            /* console.log(fileStr, 'fileStr'); */
+            const token = req.body.token;
+
+            const isValid = await isValidToken(token);
+
+            if (!isValid) res.status(500).send('Unauthenticated');
 
             const uploadedResponse = await cloudinary.uploader.upload(fileStr, {
                 upload_preset: 'dev-tests',
             });
 
-            console.log(uploadedResponse, 'uploadedResponse');
-            
+            /* console.log(uploadedResponse, 'uploadedResponse'); */
             return res.send({
                 success: 1,
                 file: {
