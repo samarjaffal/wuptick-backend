@@ -111,4 +111,31 @@ module.exports = {
         }
         return { ...comment };
     },
+
+    deleteComment: async (commentId, taskId, topicId) => {
+        let comment, query;
+        try {
+            const operator = { comments: { _id: ObjectID(commentId) } };
+            if (taskId !== null) {
+                query = {
+                    task: ObjectID(taskId),
+                    'comments._id': ObjectID(commentId),
+                };
+            } else if (topicId !== null) {
+                query = {
+                    topic: ObjectID(topicId),
+                    'comments._id': ObjectID(commentId),
+                };
+            }
+
+            comment = await mongoDB.findOne(collection, query);
+
+            await mongoDB.removeFromSet(collection, comment._id, operator);
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+
+        return true;
+    },
 };
