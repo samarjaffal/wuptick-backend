@@ -80,4 +80,35 @@ module.exports = {
 
         return comment;
     },
+
+    editComment: async (input) => {
+        let comment, query;
+        try {
+            if (input.taskId !== null) {
+                query = {
+                    task: ObjectID(input.taskId),
+                    'comments._id': ObjectID(input.commentId),
+                };
+            } else if (input.topicId !== null) {
+                query = {
+                    topic: ObjectID(input.topicId),
+                    'comments._id': ObjectID(input.commentId),
+                };
+            }
+
+            let data = {
+                $set: {
+                    'comments.$.comment': input.comment,
+                    'comments.$.commentJson': input.commentJson,
+                    'comments.$.updated_at': input.updated_at,
+                },
+            };
+
+            await mongoDB.updateSet(collection, query, data);
+            [comment] = await mongoDB.getAll(collection, query);
+        } catch (error) {
+            console.error(error);
+        }
+        return { ...comment };
+    },
 };
