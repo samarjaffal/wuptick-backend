@@ -110,6 +110,8 @@ module.exports = {
 
             await mongoDB.updateSet(collection, query, data);
             [comment] = await mongoDB.getAll(collection, query);
+            mentionIds = findMentions(input.comment);
+            setupMentionsEmail(mentionIds, input.taskId, input, '/');
         } catch (error) {
             console.error(error);
         }

@@ -1,6 +1,5 @@
 module.exports = {
     findMentions: (html) => {
-        console.log(html, 'description');
         const myregexp = /<span[^>]+?class="mention-item".*?>([\s\S]*?)<\/span>/g;
         let match = myregexp.exec(html);
         let mentions = [];
