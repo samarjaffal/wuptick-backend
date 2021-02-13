@@ -31,7 +31,7 @@ module.exports = {
         return task._id;
     },
 
-    editTask: async (taskId, input) => {
+    editTask: async (taskId, input, url) => {
         let task;
         try {
             let inputData = { ...input };
@@ -40,8 +40,8 @@ module.exports = {
                 inputData.assigned = ObjectID(input.assigned._id);
             task = await crudHelper.edit(collection, taskId, inputData, 'task');
             let mentionIds = module.exports.findMentions(inputData.description);
-            console.log(mentionIds, 'mentions');
-            setupMentionsEmail(mentionIds, taskId);
+            console.log(url, 'editTask');
+            setupMentionsEmail(mentionIds, taskId, url);
         } catch (error) {
             console.error(error);
         }
