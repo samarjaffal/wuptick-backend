@@ -4,6 +4,7 @@ const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
 const collection = 'tasks';
 const { ObjectID } = require('mongodb');
+const { setupMentionsEmail } = require('../email/task-email');
 
 const defaults = {
     description: '',
@@ -37,9 +38,10 @@ module.exports = {
             if ('tag' in inputData) inputData.tag = ObjectID(inputData.tag._id);
             if ('assigned' in inputData)
                 inputData.assigned = ObjectID(input.assigned._id);
+            task = await crudHelper.edit(collection, taskId, inputData, 'task');
             let mentionIds = module.exports.findMentions(inputData.description);
             console.log(mentionIds, 'mentions');
-            task = await crudHelper.edit(collection, taskId, inputData, 'task');
+            setupMentionsEmail(mentionIds, taskId);
         } catch (error) {
             console.error(error);
         }
