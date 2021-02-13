@@ -1,10 +1,11 @@
 const MongoLib = require('../lib/db/mongo');
-const Module = require('./module-helper');
 const mongoDB = new MongoLib();
-const crudHelper = require('./crud-helper');
-const collection = 'tasks';
+const Module = require('./module-helper');
 const { ObjectID } = require('mongodb');
+const crudHelper = require('./crud-helper');
 const { setupMentionsEmail } = require('../email/task-email');
+const { findMentions } = require('../shared/mentions');
+const collection = 'tasks';
 
 const defaults = {
     description: '',
@@ -39,45 +40,13 @@ module.exports = {
             if ('assigned' in inputData)
                 inputData.assigned = ObjectID(input.assigned._id);
             task = await crudHelper.edit(collection, taskId, inputData, 'task');
-            let mentionIds = module.exports.findMentions(inputData.description);
+            let mentionIds = findMentions(inputData.description);
             console.log(url, 'editTask');
             setupMentionsEmail(mentionIds, taskId, url);
         } catch (error) {
             console.error(error);
         }
         return task;
-    },
-
-    findMentions: (html) => {
-        console.log(html, 'description');
-        const myregexp = /<span[^>]+?class="mention-item".*?>([\s\S]*?)<\/span>/g;
-        let match = myregexp.exec(html);
-        let mentions = [];
-        while (match != null) {
-            mentions.push(match[0]);
-            match = myregexp.exec(html);
-        }
-
-        return mentions.length > 0
-            ? module.exports.getMentionIds(mentions)
-            : [];
-    },
-
-    getMentionIds: (mentions) => {
-        let mentionIds = [];
-        let match;
-
-        mentions.forEach((mentionStr) => {
-            const regex = new RegExp(
-                '[\\s\\r\\t\\n]*([a-z0-9\\-_]+)[\\s\\r\\t\\n]*=[\\s\\r\\t\\n]*([\'"])((?:\\\\\\2|(?!\\2).)*)\\2',
-                'ig'
-            );
-            while ((match = regex.exec(mentionStr))) {
-                if (match[1] == 'data-value') mentionIds.push(match[3]);
-            }
-        });
-
-        return mentionIds;
     },
 
     getTasks: async (moduleId) => {

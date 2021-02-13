@@ -4,7 +4,8 @@ const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
 const collection = 'comments';
 const { ObjectID } = require('mongodb');
-
+const { findMentions } = require('../shared/mentions');
+const { setupMentionsEmail } = require('../email/comment-email');
 const defaults = {
     page: 1,
     count: 1,
@@ -31,6 +32,7 @@ module.exports = {
         let comment, taskId, topicId, commentBelowMax;
         let query;
         let newComment;
+        let mentionIds;
 
         if ('task' in input) taskId = ObjectID(input.task._id);
         if ('topic' in input) topicId = ObjectID(input.topic._id);
@@ -64,6 +66,7 @@ module.exports = {
 
             await mongoDB.update(collection, newComment._id, newComment);
             comment = newComment;
+            mentionIds = findMentions(input.comments.comment);
         } else {
             delete query.count;
             let countPages = await mongoDB.getAll(collection, query, true);
@@ -76,8 +79,9 @@ module.exports = {
                 page: pages,
             };
             comment = await crudHelper.create(collection, newComment, defaults);
+            mentionIds = findMentions(input.comments.comment);
         }
-
+        setupMentionsEmail(mentionIds, taskId, input.comments, '/');
         return comment;
     },
 
