@@ -61,6 +61,17 @@ module.exports = {
         return tasks || [];
     },
 
+    getTask: async (taskId) => {
+        let task;
+        try {
+            task = await mongoDB.get(collection, taskId);
+        } catch (error) {
+            console.error(error);
+        }
+
+        return task || {};
+    },
+
     assignTask: async (taskId, userId) => {
         const assigned = userId !== null ? ObjectID(userId) : null;
 
