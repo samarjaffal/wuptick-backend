@@ -36,7 +36,8 @@ module.exports = {
         let task;
         try {
             let inputData = { ...input };
-            if ('tag' in inputData) inputData.tag = ObjectID(inputData.tag._id);
+            if ('tag' in inputData && inputData.tag !== null)
+                inputData.tag = ObjectID(inputData.tag);
             if ('assigned' in inputData)
                 inputData.assigned = ObjectID(input.assigned._id);
             task = await crudHelper.edit(collection, taskId, inputData, 'task');
