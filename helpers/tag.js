@@ -4,6 +4,11 @@ const { ObjectID } = require('mongodb');
 const crudHelper = require('./crud-helper');
 const collection = 'tags';
 
+const defaults = {
+    name: 'General',
+    color: '',
+};
+
 module.exports = {
     getTags: async (teamId) => {
         let tags;
@@ -15,5 +20,13 @@ module.exports = {
         }
 
         return tags || [];
+    },
+
+    createTag: async (input) => {
+        let tag;
+        input.team = ObjectID(input.team);
+        input.created_at = new Date();
+        tag = await crudHelper.create(collection, input, defaults);
+        return tag;
     },
 };
