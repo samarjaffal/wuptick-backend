@@ -1,8 +1,9 @@
 const MongoLib = require('../lib/db/mongo');
 const mongoDB = new MongoLib();
 const Module = require('./module-helper');
-const { ObjectID } = require('mongodb');
 const crudHelper = require('./crud-helper');
+const mongoHelper = require('./mongo-helper');
+const { ObjectID } = require('mongodb');
 const { setupMentionsEmail } = require('../email/task-email');
 const { findMentions } = require('../shared/mentions');
 const collection = 'tasks';
@@ -80,6 +81,7 @@ module.exports = {
             await mongoDB.update(collection, taskId, {
                 assigned: assigned,
             });
+            await module.exports.addCollaborator(taskId, userId);
             return userId;
         } catch (error) {
             console.log(error);
@@ -105,5 +107,16 @@ module.exports = {
         await Module.removeTaskFromList(moduleId, listId, taskId);
         await crudHelper.delete(collection, taskId, 'task');
         return true;
+    },
+
+    addCollaborator: async (taskId, userId) => {
+        let updatedId;
+        updatedId = await mongoHelper.addUniqueElementToArray(
+            collection,
+            ObjectID(taskId),
+            'collaborators',
+            ObjectID(userId)
+        );
+        return updatedId;
     },
 };
