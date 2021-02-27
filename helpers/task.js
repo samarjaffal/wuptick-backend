@@ -119,4 +119,11 @@ module.exports = {
         );
         return updatedId;
     },
+
+    removeCollaborator: async (taskId, userId) => {
+        let task;
+        const operator = { collaborators: ObjectID(userId) };
+        await crudHelper.removeSet(collection, taskId, 'task', operator);
+        return userId;
+    },
 };
