@@ -42,8 +42,14 @@ module.exports = {
             if ('assigned' in inputData)
                 inputData.assigned = ObjectID(input.assigned._id);
             task = await crudHelper.edit(collection, taskId, inputData, 'task');
+
+            //get user ids from mentions on a task description
             let mentionIds = findMentions(inputData.description);
-            console.log(url, 'editTask');
+
+            //add someone to a task as a collaborator if it was mentioned
+            await module.exports.addCollaborators(taskId, mentionIds);
+
+            //send an email if someone has been mentioned on a task
             setupMentionsEmail(mentionIds, taskId, url);
         } catch (error) {
             console.error(error);
@@ -107,6 +113,13 @@ module.exports = {
         await Module.removeTaskFromList(moduleId, listId, taskId);
         await crudHelper.delete(collection, taskId, 'task');
         return true;
+    },
+
+    addCollaborators: async (taskId, userIds) => {
+        if (userIds.length == 0) return;
+        userIds.forEach(async (userId) => {
+            await module.exports.addCollaborator(taskId, userId);
+        });
     },
 
     addCollaborator: async (taskId, userId) => {
