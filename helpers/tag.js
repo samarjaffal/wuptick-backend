@@ -29,4 +29,10 @@ module.exports = {
         tag = await crudHelper.create(collection, input, defaults);
         return tag;
     },
+
+    deleteTag: async (tagId) => {
+        let tag;
+        tag = await crudHelper.delete(collection, tagId, 'tag');
+        return Boolean(tag);
+    },
 };
