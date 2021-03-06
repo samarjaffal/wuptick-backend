@@ -6,7 +6,10 @@ const collection = 'comments';
 const Task = require('./task');
 const { ObjectID } = require('mongodb');
 const { findMentions } = require('../shared/mentions');
-const { setupMentionsEmail } = require('../email/comment-email');
+const {
+    setupMentionsEmail,
+    setupNewCommentEmail,
+} = require('../email/comment-email');
 const defaults = {
     page: 1,
     count: 1,
@@ -88,6 +91,10 @@ module.exports = {
 
         //send an email if someon has been mentioned on a comment
         setupMentionsEmail(mentionIds, taskId, input.comments, '/');
+
+        //send new comment email
+        setupNewCommentEmail(mentionIds, taskId, input.comments, '/');
+
         return comment;
     },
 

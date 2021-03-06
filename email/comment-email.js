@@ -14,6 +14,13 @@ const emailTemplates = {
         subject: 'You have been mentioned on a comment',
         html: '~Hello World~',
     },
+
+    newCommentTaskEmail: {
+        from: `"Wuptick Team" <dev.wuptick@gmail.com>`,
+        to: 'dev.wuptick@gmail.com',
+        subject: 'There is a new comment',
+        html: '~Hello World~',
+    },
 };
 
 module.exports = {
@@ -39,12 +46,58 @@ module.exports = {
             });
         });
     },
+
+    setupNewCommentEmail: async (mentionIds, taskId, comment, url = '/') => {
+        let users, task, collabIds;
+
+        task = await mongoDB.get('tasks', taskId);
+
+        console.log(mentionIds, 'mentionIds');
+
+        if (mentionIds.length > 0) {
+            collabIds = task.collaborators.filter(
+                (collab) => !mentionIds.includes(String(collab))
+            );
+        } else {
+            collabIds = task.collaborators;
+        }
+
+        collabIds = collabIds.filter(
+            (collab) => String(comment.owner) !== String(collab)
+        );
+
+        console.log(collabIds, 'colabIds');
+
+        users = await mongoDB.getAll('users', { _id: { $in: collabIds } });
+        if (users.length == 0) return;
+
+        users.forEach((user) => {
+            module.exports.sendNewCommentEmail({
+                email: user.email,
+                task,
+                user,
+                comment,
+                url,
+            });
+        });
+    },
+
+    sendNewCommentEmail: (data) => {
+        let newUrl;
+        newUrl = `${config.frontURL}/`;
+        data.url = newUrl;
+        emailTemplates.newCommentTaskEmail.to = data.email;
+        emailTemplates.newCommentTaskEmail.subject = `New reply on: ${data.task.name}`;
+        emailTemplates.newCommentTaskEmail.html = newCommentMention(data);
+        Email.sendEmail(emailTemplates.newCommentTaskEmail);
+    },
+
     sendMentionEmail: (data) => {
         let newUrl;
         newUrl = `${config.frontURL}/${data.url}`;
         data.url = newUrl;
         emailTemplates.mentionTaskEmail.to = data.email;
-        emailTemplates.mentionTaskEmail.subject = `New reply on: ${data.task.name}`;
+        emailTemplates.mentionTaskEmail.subject = `New mention on: ${data.task.name}`;
         emailTemplates.mentionTaskEmail.html = newCommentMention(data);
         Email.sendEmail(emailTemplates.mentionTaskEmail);
     },
