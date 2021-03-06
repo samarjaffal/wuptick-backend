@@ -25,6 +25,7 @@ module.exports = {
     createTask: async (input, moduleId, listId, userId) => {
         let task;
         input.owner = ObjectID(userId);
+        input.collaborators = [ObjectID(userId)];
         /* if ('assigned' in input) input.assigned = ObjectID(input.assigned._id);
         if ('tag' in input) input.tag = ObjectID(input.tag._id); */
         input.created_at = new Date();
