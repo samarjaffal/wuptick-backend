@@ -4,7 +4,10 @@ const Module = require('./module-helper');
 const crudHelper = require('./crud-helper');
 const mongoHelper = require('./mongo-helper');
 const { ObjectID } = require('mongodb');
-const { setupMentionsEmail } = require('../email/task-email');
+const {
+    setupMentionsEmail,
+    sendAssignTaskEmail,
+} = require('../email/task-email');
 const { findMentions } = require('../shared/mentions');
 const collection = 'tasks';
 
@@ -85,10 +88,23 @@ module.exports = {
         const assigned = userId !== null ? ObjectID(userId) : null;
 
         try {
+            //update the assignation
             await mongoDB.update(collection, taskId, {
                 assigned: assigned,
             });
+
+            //add this user as a colaborator
             await module.exports.addCollaborator(taskId, userId);
+
+            let task = await mongoDB.get(collection, taskId);
+            let user = await mongoDB.get('users', userId);
+
+            //send email that user has been assigned a new task
+            if (assigned || assigned !== null) {
+                sendAssignTaskEmail({ url: '/', task, email: user.email });
+            }
+
+            //return userId
             return userId;
         } catch (error) {
             console.log(error);
