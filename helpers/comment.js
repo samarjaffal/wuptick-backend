@@ -129,7 +129,7 @@ module.exports = {
             await Task.addCollaborators(input.taskId, mentionIds);
 
             //send an email if someon has been mentioned on a comment
-            setupMentionsEmail(mentionIds, input.taskId, input, '/');
+            setupMentionsEmail(mentionIds, input.taskId, input, input.url);
         } catch (error) {
             console.error(error);
         }
