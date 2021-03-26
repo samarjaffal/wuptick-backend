@@ -84,7 +84,7 @@ module.exports = {
         return task || {};
     },
 
-    assignTask: async (taskId, userId) => {
+    assignTask: async (taskId, userId, url) => {
         const assigned = userId !== null ? ObjectID(userId) : null;
 
         try {
@@ -101,7 +101,7 @@ module.exports = {
 
             //send email that user has been assigned a new task
             if (assigned || assigned !== null) {
-                sendAssignTaskEmail({ url: '/', task, email: user.email });
+                sendAssignTaskEmail({ url: url, task, email: user.email });
             }
 
             //return userId
