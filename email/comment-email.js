@@ -84,7 +84,7 @@ module.exports = {
 
     sendNewCommentEmail: (data) => {
         let newUrl;
-        newUrl = `${config.frontURL}/`;
+        newUrl = `${config.frontURL}/${data.url}`;
         data.url = newUrl;
         emailTemplates.newCommentTaskEmail.to = data.email;
         emailTemplates.newCommentTaskEmail.subject = `New reply on: ${data.task.name}`;

@@ -90,10 +90,10 @@ module.exports = {
         await Task.addCollaborators(taskId, mentionIds);
 
         //send an email if someon has been mentioned on a comment
-        setupMentionsEmail(mentionIds, taskId, input.comments, '/');
+        setupMentionsEmail(mentionIds, taskId, input.comments, input.url);
 
         //send new comment email
-        setupNewCommentEmail(mentionIds, taskId, input.comments, '/');
+        setupNewCommentEmail(mentionIds, taskId, input.comments, input.url);
 
         return comment;
     },
