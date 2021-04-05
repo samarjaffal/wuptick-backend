@@ -76,6 +76,20 @@ module.exports = {
         return module.task_lists[0];
     },
 
+    editTaskList: async (moduleId, listId, name) => {
+        try {
+            let query = {
+                _id: ObjectID(moduleId),
+                'task_lists._id': ObjectID(listId),
+            };
+            let data = { $set: { 'task_lists.$.name': name } };
+            await mongoDB.updateSet(collection, query, data);
+        } catch (error) {
+            console.error(error);
+        }
+        return moduleId;
+    },
+
     addTask: async (moduleId, listId, taskId) => {
         try {
             let query = {
