@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const { notificationLoader } = require('../lib/db/dataLoaders');
 const collection = 'notifications';
 const mongoDB = new MongoLib();
+const crudHelper = require('./crud-helper');
 
 const defaults = {
     created_at: '',
@@ -29,5 +30,22 @@ module.exports = {
             console.error(error);
         }
         return notifications || [];
+    },
+
+    createNotification: async (input) => {
+        try {
+            input.external_id = ObjectID(input.external_id);
+            input.recipient = ObjectID(input.recipient);
+            input.created_at = new Date();
+            let notification = await crudHelper.create(
+                collection,
+                input,
+                defaults
+            );
+            return notification._id;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
     },
 };
