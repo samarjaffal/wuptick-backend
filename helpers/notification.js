@@ -48,4 +48,19 @@ module.exports = {
             throw new Error(error);
         }
     },
+
+    setNotificationAsRead: async (ids) => {
+        try {
+            let objectIds = ids.map((id) => ObjectID(id));
+            let query = { _id: { $in: objectIds } };
+            let operator = {
+                $set: { read_at: new Date() },
+            };
+            await mongoDB.updateMany(collection, query, operator);
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
 };
