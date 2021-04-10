@@ -5,6 +5,7 @@ const { notificationLoader } = require('../lib/db/dataLoaders');
 const collection = 'notifications';
 const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
+const mongoHelper = require('./mongo-helper');
 
 const defaults = {
     created_at: '',
@@ -43,6 +44,27 @@ module.exports = {
                 defaults
             );
             return notification._id;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
+    },
+
+    createManyNotifications: async (externalId, userIds, type) => {
+        try {
+            if (userIds.length == 0) return [];
+
+            let data = userIds.map((id) => ({
+                type: type,
+                external_id: ObjectID(externalId),
+                recipient: ObjectID(id),
+                created_at: new Date(),
+            }));
+
+            console.log(data, 'data array');
+            let insertedIds = await mongoDB.createMany(collection, data);
+            console.log(insertedIds, 'insertedIds');
+            return insertedIds;
         } catch (error) {
             console.log(error);
             throw new Error(error);

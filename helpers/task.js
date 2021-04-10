@@ -54,6 +54,13 @@ module.exports = {
             //add someone to a task as a collaborator if it was mentioned
             await module.exports.addCollaborators(taskId, mentionIds);
 
+            //create notifications for users mentioned on task
+            await Notification.createManyNotifications(
+                taskId,
+                mentionIds,
+                'task_mention'
+            );
+
             //send an email if someone has been mentioned on a task
             setupMentionsEmail(mentionIds, taskId, url);
         } catch (error) {
@@ -100,9 +107,12 @@ module.exports = {
             let task = await mongoDB.get(collection, taskId);
             let user = await mongoDB.get('users', userId);
 
-
             //add notification for this user
-            const notification = {type: 'task_assignation', external_id: taskId, recipient: userId};
+            const notification = {
+                type: 'task_assignation',
+                external_id: taskId,
+                recipient: userId,
+            };
             await Notification.createNotification(notification);
 
             //send email that user has been assigned a new task

@@ -3,6 +3,7 @@ const { config } = require('../config/index');
 const MongoLib = require('../lib/db/mongo');
 const { ObjectID } = require('mongodb');
 const mongoDB = new MongoLib();
+const Notification = require('../helpers/notification');
 const {
     newCommentMention,
 } = require('../templates/email-templates/new-comment-mention');
@@ -67,6 +68,13 @@ module.exports = {
         );
 
         console.log(collabIds, 'colabIds');
+
+        //create notifications for collaborators
+        await Notification.createManyNotifications(
+            taskId,
+            collabIds,
+            'task_comment'
+        );
 
         users = await mongoDB.getAll('users', { _id: { $in: collabIds } });
         if (users.length == 0) return;

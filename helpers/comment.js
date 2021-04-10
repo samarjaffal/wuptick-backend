@@ -4,6 +4,7 @@ const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
 const collection = 'comments';
 const Task = require('./task');
+const Notification = require('./notification');
 const { ObjectID } = require('mongodb');
 const { findMentions } = require('../shared/mentions');
 const {
@@ -89,6 +90,13 @@ module.exports = {
         //add someone to a task as a collaborator if it has been mentioned on a comment
         await Task.addCollaborators(taskId, mentionIds);
 
+        //create notifications for users mentioned on comment
+        await Notification.createManyNotifications(
+            taskId,
+            mentionIds,
+            'task_mention'
+        );
+
         //send an email if someon has been mentioned on a comment
         setupMentionsEmail(mentionIds, taskId, input.comments, input.url);
 
@@ -127,6 +135,13 @@ module.exports = {
 
             //add someone to a task as a collaborator if it has been mentioned on a comment
             await Task.addCollaborators(input.taskId, mentionIds);
+
+            //create notifications for users mentioned on comment or collaborators
+            await Notification.createManyNotifications(
+                taskId,
+                mentionIds,
+                'task_mention'
+            );
 
             //send an email if someon has been mentioned on a comment
             setupMentionsEmail(mentionIds, input.taskId, input, input.url);
