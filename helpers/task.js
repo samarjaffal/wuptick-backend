@@ -1,6 +1,7 @@
 const MongoLib = require('../lib/db/mongo');
 const mongoDB = new MongoLib();
 const Module = require('./module-helper');
+const Notification = require('./notification');
 const crudHelper = require('./crud-helper');
 const mongoHelper = require('./mongo-helper');
 const { ObjectID } = require('mongodb');
@@ -98,6 +99,11 @@ module.exports = {
 
             let task = await mongoDB.get(collection, taskId);
             let user = await mongoDB.get('users', userId);
+
+
+            //add notification for this user
+            const notification = {type: 'task_assignation', external_id: taskId, recipient: userId};
+            await Notification.createNotification(notification);
 
             //send email that user has been assigned a new task
             if (assigned || assigned !== null) {
