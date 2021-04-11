@@ -8,8 +8,8 @@ const crudHelper = require('./crud-helper');
 const mongoHelper = require('./mongo-helper');
 
 const defaults = {
-    created_at: '',
-    read_at: '',
+    created_at: null,
+    read_at: null,
 };
 
 const LIMIT_NOTIFICATIONS = 30;
