@@ -10,6 +10,7 @@ const mongoHelper = require('./mongo-helper');
 const defaults = {
     created_at: null,
     read_at: null,
+    url: '',
 };
 
 const LIMIT_NOTIFICATIONS = 30;
@@ -50,7 +51,7 @@ module.exports = {
         }
     },
 
-    createManyNotifications: async (externalId, userIds, type) => {
+    createManyNotifications: async (externalId, userIds, type, url) => {
         try {
             if (userIds.length == 0) return [];
 
@@ -59,6 +60,7 @@ module.exports = {
                 external_id: ObjectID(externalId),
                 recipient: ObjectID(id),
                 created_at: new Date(),
+                url,
             }));
 
             console.log(data, 'data array');

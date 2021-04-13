@@ -58,7 +58,8 @@ module.exports = {
             await Notification.createManyNotifications(
                 taskId,
                 mentionIds,
-                'task_mention'
+                'task_mention',
+                url
             );
 
             //send an email if someone has been mentioned on a task
@@ -112,6 +113,7 @@ module.exports = {
                 type: 'task_assignation',
                 external_id: taskId,
                 recipient: userId,
+                url,
             };
             await Notification.createNotification(notification);
 

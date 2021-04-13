@@ -94,7 +94,8 @@ module.exports = {
         await Notification.createManyNotifications(
             taskId,
             mentionIds,
-            'task_mention'
+            'task_mention',
+            input.url
         );
 
         //send an email if someon has been mentioned on a comment
@@ -140,7 +141,8 @@ module.exports = {
             await Notification.createManyNotifications(
                 taskId,
                 mentionIds,
-                'task_mention'
+                'task_mention',
+                input.url
             );
 
             //send an email if someon has been mentioned on a comment
