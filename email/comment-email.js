@@ -73,7 +73,8 @@ module.exports = {
         await Notification.createManyNotifications(
             taskId,
             collabIds,
-            'task_comment'
+            'task_comment',
+            url
         );
 
         users = await mongoDB.getAll('users', { _id: { $in: collabIds } });
