@@ -87,4 +87,22 @@ module.exports = {
             return false;
         }
     },
+
+    setNotificationAsReadByUserId: async (externalId, recipient) => {
+        try {
+            let query = {
+                external_id: ObjectID(externalId),
+                recipient: ObjectID(recipient),
+                read_at: null,
+            };
+            let operator = {
+                $set: { read_at: new Date() },
+            };
+            await mongoDB.findOneAndUpdate(collection, query, operator);
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
 };
