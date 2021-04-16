@@ -11,6 +11,7 @@ const defaults = {
     created_at: null,
     read_at: null,
     url: '',
+    hide: false,
 };
 
 const LIMIT_NOTIFICATIONS = 30;
@@ -99,6 +100,16 @@ module.exports = {
                 $set: { read_at: new Date() },
             };
             await mongoDB.findOneAndUpdate(collection, query, operator);
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
+
+    hideNotification: async (id) => {
+        try {
+            await mongoDB.update(collection, id, { hide: true });
             return true;
         } catch (error) {
             console.log(error);
