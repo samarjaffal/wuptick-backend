@@ -112,6 +112,7 @@ const generateLog = async (documents, type) => {
                 firstName: `${user.name}`,
                 lastName: `${user.last_name}`,
                 avatar: user.avatar,
+                color: user.color,
             };
         }
 
