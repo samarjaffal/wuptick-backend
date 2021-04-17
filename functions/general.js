@@ -15,21 +15,23 @@ const Colors = {
     hover: '#EDF0FF',
 };
 
-export const randomColor = () => {
-    let tempColors = { ...Colors };
+module.exports = {
+    randomColor: () => {
+        let tempColors = { ...Colors };
 
-    let removeColors = [
-        'white',
-        'whitePrimary',
-        'backgroud',
-        'softGray',
-        'hover',
-        'black',
-        'gray',
-        'secondary',
-    ];
-    removeColors.forEach((e) => delete tempColors[e]);
-    var keys = Object.keys(Colors);
-    const color = tempColors[keys[(keys.length * Math.random()) << 0]];
-    return color;
+        let removeColors = [
+            'white',
+            'whitePrimary',
+            'backgroud',
+            'softGray',
+            'hover',
+            'black',
+            'gray',
+            'secondary',
+        ];
+        removeColors.forEach((e) => delete tempColors[e]);
+        var keys = Object.keys(Colors);
+        const color = tempColors[keys[(keys.length * Math.random()) << 0]];
+        return color;
+    },
 };
