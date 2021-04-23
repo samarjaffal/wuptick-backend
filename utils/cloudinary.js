@@ -7,4 +7,13 @@ cloudinary.config({
     api_secret: config.cloudinaryApiSecret,
 });
 
-module.exports = { cloudinary };
+const uploadImage = async (imgString, uploadPresent, folder) => {
+    const uploadedResponse = await cloudinary.uploader.upload(imgString, {
+        upload_preset: uploadPresent,
+        folder: folder,
+    });
+
+    return uploadedResponse;
+};
+
+module.exports = { cloudinary, uploadImage };

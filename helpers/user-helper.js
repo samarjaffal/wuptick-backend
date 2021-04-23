@@ -1,5 +1,6 @@
 const MongoLib = require('../lib/db/mongo');
 const { ObjectID } = require('mongodb');
+const { uploadImage } = require('../utils/cloudinary');
 const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
 const collection = 'users';
@@ -44,4 +45,28 @@ const toggleFavTask = async (state, userId, taskId) => {
     }
 };
 
-module.exports = { getUserInfo, toggleFavTask };
+const updateAvatar = async (imgStr, userId) => {
+    try {
+        const uploadPresent = 'dev-tests';
+        const folder = `${uploadPresent}\/user-${userId}/my-avatars/`;
+        const uploadedResponse = await uploadImage(
+            imgStr,
+            uploadPresent,
+            folder
+        );
+
+        const { url } = uploadedResponse;
+
+        if (url) {
+            const input = { avatar: url };
+            await crudHelper.edit(collection, ObjectID(userId), input, 'user');
+        }
+
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+};
+
+module.exports = { getUserInfo, toggleFavTask, updateAvatar };
