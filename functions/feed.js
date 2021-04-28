@@ -149,6 +149,7 @@ const generateLog = async (documents, type) => {
                     'projectId' in document ? document.projectId : document._id,
                 name: 'projectName' in document ? document.projectName : '',
                 image: type == 'project' ? document.image : '',
+                color: 'color' in document ? document.color : '',
             },
             comment: type == 'comment' ? document.comment : null,
         };
@@ -175,7 +176,12 @@ const getTasksFromModules = async () => {
 
     let newTasks = tasks.map((task) => {
         let project = getProjectByModule(task.module);
-        return { ...task, projectId: project._id, projectName: project.name };
+        return {
+            ...task,
+            projectId: project._id,
+            projectName: project.name,
+            color: project.color,
+        };
     });
     return newTasks;
 };
@@ -252,6 +258,7 @@ const getTaskComments = async () => {
             created_at: document.comment.created_at,
             projectId: project._id,
             projectName: project.name,
+            color: project.color,
             comment: {
                 commentId: document.comment._id,
                 comment: document.comment.comment,

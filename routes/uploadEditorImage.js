@@ -1,5 +1,6 @@
 const express = require('express');
 const MongoLib = require('../lib/db/mongo');
+const File = require('../helpers/file');
 const { isValidToken } = require('../functions/auth');
 const { ObjectID } = require('mongodb');
 const { cloudinary } = require('../utils/cloudinary');
@@ -14,6 +15,7 @@ const uploadEditorImage = (app) => {
         try {
             const fileStr = req.body.data;
             const token = req.body.token;
+            const fileData = JSON.parse(req.body.fileData);
 
             const isValid = await isValidToken(token);
 
@@ -23,6 +25,10 @@ const uploadEditorImage = (app) => {
                 upload_preset: 'dev-tests',
             });
 
+            await File.createFile({
+                ...fileData,
+                fileUrl: uploadedResponse.secure_url,
+            });
             /* console.log(uploadedResponse, 'uploadedResponse'); */
             return res.send({
                 success: 1,
