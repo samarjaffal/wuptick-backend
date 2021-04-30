@@ -27,11 +27,11 @@ module.exports = {
         return file;
     },
 
-    getFilesForTask: async (taskId) => {
+    getFiles: async (id) => {
         let files;
         try {
             const query = {
-                parentId: ObjectID(taskId),
+                parentId: ObjectID(id),
             };
             files = await mongoDB.getAll(collection, query);
         } catch (error) {
