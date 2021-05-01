@@ -13,8 +13,8 @@ const defaults = {
     parentId: null,
     fileUrl: '',
     parentUrl: '',
-    created_at: '',
-    deleted_at: '',
+    created_at: null,
+    deleted_at: null,
 };
 
 module.exports = {
