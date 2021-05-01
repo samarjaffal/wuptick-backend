@@ -42,4 +42,20 @@ module.exports = {
 
         return files || [];
     },
+
+    deleteFile: async (fileId) => {
+        let file;
+        try {
+            file = await crudHelper.edit(
+                collection,
+                fileId,
+                { deleted_at: new Date() },
+                'file'
+            );
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
 };
