@@ -8,11 +8,13 @@ const crudHelper = require('./crud-helper');
 const mongoHelper = require('./mongo-helper');
 
 const defaults = {
+    fileName: '',
     description: '',
     parentId: null,
     fileUrl: '',
     parentUrl: '',
     created_at: '',
+    deleted_at: '',
 };
 
 module.exports = {
