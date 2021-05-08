@@ -16,4 +16,14 @@ const uploadImage = async (imgString, uploadPresent, folder) => {
     return uploadedResponse;
 };
 
-module.exports = { cloudinary, uploadImage };
+const uploadFile = async (file, uploadPresent, folder) => {
+    const uploadedResponse = await cloudinary.uploader.upload(file, {
+        upload_preset: uploadPresent,
+        folder: folder,
+        resource_type: 'raw',
+    });
+
+    return uploadedResponse;
+};
+
+module.exports = { cloudinary, uploadImage, uploadFile };

@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const refreshToken = require('./routes/refreshToken');
 const confirmRegistration = require('./routes/confirmRegistration');
 const uploadEditorImage = require('./routes/uploadEditorImage');
+const uploadEditorFile = require('./routes/uploadEditorFile');
 const app = express();
 
 app.use(
@@ -26,6 +27,9 @@ confirmRegistration(app);
 
 //upload image from editor
 uploadEditorImage(app);
+
+//upload file from editor
+uploadEditorFile(app);
 
 const isAuth = require('./middleware/is-auth');
 app.use(isAuth);
