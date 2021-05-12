@@ -35,15 +35,16 @@ const uploadEditorFile = (app) => {
         async (req, res) => {
             try {
                 const file = req.file;
-                const token = req.query.token;
 
-                console.log(req.query, file, 'req');
+                let { data: fileData } = req.body;
 
-                if (!token)
-                    return res.status(500).json({ success: 0, file: {} });
+                fileData = JSON.parse(fileData);
+                const token = fileData.token;
+
+                if (!token) return res.json({ success: 0, file: {} });
                 const isValid = await isValidToken(token);
 
-                if (!isValid) res.status(500).json({ success: 0, file: {} });
+                if (!isValid) return res.json({ success: 0, file: {} });
 
                 //upload file to cloud
                 const uploadPreset = 'dev-tests';
@@ -56,9 +57,7 @@ const uploadEditorFile = (app) => {
                     use_filename: true,
                 });
 
-                const { url, public_id, bytes } = response;
-
-                console.log(response, 'response');
+                const { url, bytes } = response;
 
                 if (url) {
                     await unlink(file.path);
@@ -79,8 +78,8 @@ const uploadEditorFile = (app) => {
                     },
                 });
             } catch (error) {
-                res.status(500).json({ success: 0, file: {} });
                 console.log(error, 'error');
+                return res.status(500).json({ success: 0, file: {} });
             }
         }
     );
