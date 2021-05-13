@@ -64,10 +64,21 @@ const uploadEditorFile = (app) => {
                     console.log(`successfully deleted file: ${fileName}`);
                 }
 
-                /* await File.createFile({
-                    ...fileData,
-                    fileUrl: uploadedResponse.secure_url,
-                }); */
+                const {
+                    parentId,
+                    parentUrl,
+                    owner,
+                    additional_params,
+                } = fileData;
+
+                await File.createFile({
+                    parentId,
+                    parentUrl,
+                    owner,
+                    additional_params,
+                    fileName,
+                    fileUrl: url,
+                });
                 /* console.log(uploadedResponse, 'uploadedResponse'); */
                 return res.send({
                     success: 1,
