@@ -22,6 +22,7 @@ const config = {
     cloudinaryName: process.env.CLOUDINARY_NAME,
     clodinaryApiKey: process.env.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: process.env.CLOUDDINARY_API_SECRET,
+    googleAuthSecretFile: process.env.GOOGLE_AUTH_SECRET_FILE,
 };
 
 module.exports = { config };

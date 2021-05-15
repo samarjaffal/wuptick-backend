@@ -8,6 +8,7 @@ const refreshToken = require('./routes/refreshToken');
 const confirmRegistration = require('./routes/confirmRegistration');
 const uploadEditorImage = require('./routes/uploadEditorImage');
 const uploadEditorFile = require('./routes/uploadEditorFile');
+const { listFiles } = require('./utils/googledrive');
 const app = express();
 
 app.use(
