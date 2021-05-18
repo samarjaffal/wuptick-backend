@@ -23,6 +23,7 @@ const config = {
     clodinaryApiKey: process.env.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: process.env.CLOUDDINARY_API_SECRET,
     googleAuthSecretFile: process.env.GOOGLE_AUTH_SECRET_FILE,
+    gdRootFolderId: process.env.GD_ROOT_FOLDER_ID,
 };
 
 module.exports = { config };
