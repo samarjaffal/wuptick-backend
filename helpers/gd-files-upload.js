@@ -6,12 +6,28 @@ const {
     saveFolderForUser,
 } = require('./gd-user-folders');
 
-const initFolder = async (userId, userConfig, callback = null) => {
+const USER_ROOT_FOLDER_PREFIX = 'user-files';
+
+/**
+ * Check the configuration folders for a user
+ *
+ * @param {String} userId The user id.
+ * @param {String} userConfig An object with the files configuration.
+ * @param {String} callback Optional callback.
+ */
+
+const initFolderConf = async (userId, userConfig, callback = null) => {
     try {
         if (userConfig !== null) return userConfig;
         const id = await initUserFolder(userId);
-        if (!id) return false;
-        if (callback) callback();
+        if (!id) return null;
+        let count = 0,
+            limitCount = 3;
+        if (callback) {
+            if (count === limitCount) return null;
+            count++;
+            callback();
+        }
     } catch (error) {
         console.error(error);
         return new Error('Error on init user folder');
@@ -25,25 +41,39 @@ const initFolder = async (userId, userConfig, callback = null) => {
  * @param {String} folderName Folder name where the file will be uploaded.
  * @param {String} filePath The file path.
  */
-const uploadFile = async (userId, folderName = 'default', filePath) => {
+const uploadFile = async (
+    userId,
+    folderName = 'default',
+    filePath,
+    fileName
+) => {
     try {
         //get user configuration folders
         const userConfig = await getUserFolders(userId);
 
         //init folder
-        await initFolder(userId, userConfig, () =>
+        await initFolderConf(userId, userConfig, () =>
             uploadFile(userId, folderName, filePath)
         );
 
         const { folders } = userConfig;
         console.log(folders, 'folders');
 
+        //check if user has a root folder
+        const userParentFolderId = await checkRootFolderForUser(
+            folders,
+            userId
+        );
+
         //get user folder id
-        const folderId = await getUserFolderId(folders, folderName, userId);
+        const folderId = await getUserFolderId(
+            folders,
+            folderName,
+            userId,
+            userParentFolderId
+        );
 
         console.log(folderId, 'folderId');
-
-        const fileName = 'test2.jpg';
 
         //upload file to google drive
         const response = await googledrive.uploadFile(
@@ -53,23 +83,40 @@ const uploadFile = async (userId, folderName = 'default', filePath) => {
         );
 
         console.log(response);
+
+        return response || null;
     } catch (error) {
         console.error(error);
         return new Error('Error on upload file to google drive');
     }
 };
 
-const getUserFolderId = async (folders, folderName, userId) => {
+const checkRootFolderForUser = (folders, userId) => {
+    try {
+        const folderName = `${USER_ROOT_FOLDER_PREFIX}-${userId}`;
+        return getUserFolderId(folders, folderName, userId);
+    } catch (error) {
+        console.error(error);
+        return new Error('Error on check root folder for user');
+    }
+};
+
+const getUserFolderId = async (
+    folders,
+    folderName,
+    userId,
+    parentFolder = config.gdRootFolderId
+) => {
     let folderId;
 
     const folderExist = folders.hasOwnProperty(folderName);
 
     try {
         if (!folderExist) {
-            console.log('no');
+            // console.log('no');
 
             //create folder on google drive
-            folderId = await googledrive.createFolder(folderName);
+            folderId = await googledrive.createFolder(folderName, parentFolder);
 
             //if no id return null
             if (!folderId) return null;
@@ -77,7 +124,7 @@ const getUserFolderId = async (folders, folderName, userId) => {
             //save folder id on gd-user-folders table
             await saveFolderForUser(userId, folderName, folderId);
         } else {
-            console.log('si');
+            //console.log('yes');
             folderId = folders[folderName];
         }
     } catch (error) {
