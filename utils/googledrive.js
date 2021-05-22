@@ -1,6 +1,16 @@
+const mime = require('mime-types');
+const fs = require('fs');
 const { config } = require('../config/index');
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
+const {
+    getUserFolders,
+    initUserFolder,
+    saveFolderForUser,
+} = require('../helpers/gd-user-folders');
+
+//to remove
+const path = require('path');
 
 const SCOPES = [
     'https://www.googleapis.com/auth/cloud-platform',
@@ -63,30 +73,27 @@ const listFiles = () => {
  *
  */
 
-const createFolder = (folderName, parentId = ROOT_FOLDER_ID) => {
+const createFolder = async (folderName, parentId = ROOT_FOLDER_ID) => {
     const auth = authorize();
     const drive = google.drive({ version: 'v3', auth });
 
-    var fileMetadata = {
-        name: folderName,
-        mimeType: 'application/vnd.google-apps.folder',
-        parents: [parentId],
-    };
-    drive.files.create(
-        {
+    try {
+        var fileMetadata = {
+            name: folderName,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentId],
+        };
+        const response = await drive.files.create({
             resource: fileMetadata,
             fields: 'id',
-        },
-        async function (err, file) {
-            if (err) {
-                // Handle error
-                console.error(err);
-            } else {
-                console.log('Folder Id: ', file.data);
-                const fileId = file.data.id;
-            }
-        }
-    );
+        });
+
+        const folderId = response.data.id;
+        return folderId || null;
+    } catch (error) {
+        console.error(error, 'createFolder');
+        return false;
+    }
 };
 
 /**
@@ -126,4 +133,42 @@ const insertPermission = (fileId, email, type, role) => {
     );
 };
 
-module.exports = { listFiles, createFolder };
+/**
+ * Insert a new file on folder.
+ *
+ * @param {String} fileName File  name for the file.
+ * @param {String} filePath Path where is located the file.
+ * @param {String} parentId Parent folder where will be uploaded the file.
+ */
+const uploadFile = async (fileName, filePath, parentId) => {
+    const auth = authorize();
+    const drive = google.drive({ version: 'v3', auth });
+
+    if (!parentId) return new Error('No parent folder found');
+    if (!fileName) return new Error('No file name provided');
+    if (!filePath) return new Error('File path was not provided');
+
+    try {
+        const fileMetadata = {
+            name: fileName,
+            parents: [parentId],
+        };
+
+        const media = {
+            mimeType: mime.lookup(filePath),
+            body: fs.createReadStream(filePath),
+        };
+
+        const response = await drive.files.create({
+            resource: fileMetadata,
+            media: media,
+            fields: 'id',
+        });
+        return response.data || null;
+    } catch (error) {
+        console.error(error);
+        return new Error('Error when uploading file to google drive');
+    }
+};
+
+module.exports = { listFiles, createFolder, uploadFile };

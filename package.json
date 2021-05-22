@@ -28,6 +28,7 @@
         "graphql-iso-date": "^3.6.1",
         "graphql-tools": "^6.0.10",
         "jsonwebtoken": "^8.5.1",
+        "mime-types": "^2.1.30",
         "mongodb": "^3.5.9",
         "multer": "^1.4.2",
         "nodemailer": "^6.4.14",
