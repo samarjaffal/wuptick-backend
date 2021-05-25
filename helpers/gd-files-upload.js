@@ -15,19 +15,19 @@ const USER_ROOT_FOLDER_PREFIX = 'user-files';
  * @param {String} userConfig An object with the files configuration.
  * @param {String} callback Optional callback.
  */
-
-const initFolderConf = async (userId, userConfig, callback = null) => {
+const LIMIT_COUNT = 3;
+const initFolderConf = async (
+    userId,
+    userConfig,
+    callback = null,
+    count = 0
+) => {
     try {
         if (userConfig !== null) return userConfig;
         const id = await initUserFolder(userId);
         if (!id) return null;
-        let count = 0,
-            limitCount = 3;
-        if (callback) {
-            if (count === limitCount) return null;
-            count++;
-            callback();
-        }
+        if (count >= LIMIT_COUNT) return null;
+        if (callback) callback(count);
     } catch (error) {
         console.error(error);
         return new Error('Error on init user folder');
@@ -45,15 +45,21 @@ const uploadFile = async (
     userId,
     folderName = 'default',
     filePath,
-    fileName
+    fileName,
+    count = 0
 ) => {
     try {
         //get user configuration folders
         const userConfig = await getUserFolders(userId);
 
+        count++;
+
         //init folder
-        await initFolderConf(userId, userConfig, () =>
-            uploadFile(userId, folderName, filePath)
+        await initFolderConf(
+            userId,
+            userConfig,
+            (count) => uploadFile(userId, folderName, filePath, count),
+            count
         );
 
         const { folders } = userConfig;
