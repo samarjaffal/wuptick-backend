@@ -105,32 +105,26 @@ const createFolder = async (folderName, parentId = ROOT_FOLDER_ID) => {
  * @param {String} type The value "user", "group", "domain" or "default".
  * @param {String} role The value "owner", "writer" or "reader".
  */
-const insertPermission = (fileId, email, type, role) => {
-    const auth = authorize();
-    const drive = google.drive({ version: 'v3', auth });
+const insertPermission = async (fileId, type = 'anyone', role = 'reader') => {
+    try {
+        const auth = authorize();
+        const drive = google.drive({ version: 'v3', auth });
 
-    const body = {
-        emailAddress: email,
-        type: type,
-        role: role,
-    };
+        const body = {
+            type: type,
+            role: role,
+        };
 
-    drive.permissions.create(
-        {
+        const response = await drive.permissions.create({
             fileId: fileId,
-            resource: body,
-            transferOwnership: true,
-            fields: 'id',
-        },
-        function (err, res) {
-            if (err) {
-                // Handle error...
-                console.error(err);
-            } else {
-                console.log('Permission ID: ', res);
-            }
-        }
-    );
+            requestBody: body,
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error(error, 'createFolder');
+        return false;
+    }
 };
 
 /**
@@ -171,4 +165,35 @@ const uploadFile = async (fileName, filePath, parentId) => {
     }
 };
 
-module.exports = { listFiles, createFolder, uploadFile };
+const generatePublicUrl = async (fileId) => {
+    const auth = authorize();
+    const drive = google.drive({ version: 'v3', auth });
+
+    try {
+        const response = await drive.files.get({
+            fileId,
+            fields: 'webViewLink, webContentLink',
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error(error, 'createFolder');
+        return false;
+    }
+};
+
+const getFileLinks = async (fileId) => {
+    await insertPermission(fileId);
+    const data = await generatePublicUrl(fileId);
+    console.log(data, 'getFileLinks');
+    return data;
+};
+
+module.exports = {
+    listFiles,
+    createFolder,
+    uploadFile,
+    insertPermission,
+    generatePublicUrl,
+    getFileLinks,
+};

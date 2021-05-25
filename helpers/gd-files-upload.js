@@ -90,7 +90,9 @@ const uploadFile = async (
 
         console.log(response);
 
-        return response || null;
+        const { id: fileId } = response;
+
+        return await googledrive.getFileLinks(fileId);
     } catch (error) {
         console.error(error);
         return new Error('Error on upload file to google drive');
