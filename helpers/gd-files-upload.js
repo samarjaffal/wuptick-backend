@@ -5,6 +5,7 @@ const {
     initUserFolder,
     saveFolderForUser,
 } = require('./gd-user-folders');
+const { file } = require('googleapis/build/src/apis/file');
 
 const USER_ROOT_FOLDER_PREFIX = 'user-files';
 
@@ -16,18 +17,13 @@ const USER_ROOT_FOLDER_PREFIX = 'user-files';
  * @param {String} callback Optional callback.
  */
 const LIMIT_COUNT = 3;
-const initFolderConf = async (
-    userId,
-    userConfig,
-    callback = null,
-    count = 0
-) => {
+const initFolderConf = async (userId, userConfig) => {
     try {
         if (userConfig !== null) return userConfig;
         const id = await initUserFolder(userId);
-        if (!id) return null;
-        if (count >= LIMIT_COUNT) return null;
-        if (callback) callback(count);
+        return id || null;
+        // if (count >= LIMIT_COUNT) return null;
+        // if (callback) callback(count);
     } catch (error) {
         console.error(error);
         return new Error('Error on init user folder');
@@ -49,18 +45,36 @@ const uploadFile = async (
     count = 0
 ) => {
     try {
+        const errorResponse = { status_msg: 'error', status_id: -1 };
+
+        const successResponse = { status_msg: 'success', status_id: 0 };
+
+        //check number of attemps
+        if (count >= 3) return errorResponse;
+
+        count++;
+
         //get user configuration folders
         const userConfig = await getUserFolders(userId);
+
+        console.log(userConfig, 'userConfig');
 
         count++;
 
         //init folder
-        await initFolderConf(
-            userId,
-            userConfig,
-            (count) => uploadFile(userId, folderName, filePath, count),
-            count
-        );
+        if (userConfig == null) {
+            const result = await initFolderConf(userId, userConfig);
+
+            if (result !== null) {
+                return uploadFile(
+                    userId,
+                    folderName,
+                    filePath,
+                    fileName,
+                    count
+                );
+            }
+        }
 
         const { folders } = userConfig;
         console.log(folders, 'folders');
@@ -92,10 +106,18 @@ const uploadFile = async (
 
         const { id: fileId } = response;
 
-        return await googledrive.getFileLinks(fileId);
+        const data = await googledrive.getFileLinks(fileId);
+
+        const resultResponse = {
+            ...successResponse,
+            url: data.webContentLink,
+            size: data.size,
+        };
+
+        return resultResponse;
     } catch (error) {
         console.error(error);
-        return new Error('Error on upload file to google drive');
+        return errorResponse;
     }
 };
 

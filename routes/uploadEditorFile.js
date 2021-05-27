@@ -5,6 +5,7 @@ const File = require('../helpers/file');
 const { unlink } = require('fs').promises;
 const { isValidToken } = require('../functions/auth');
 const { cloudinary } = require('../utils/cloudinary');
+const { uploadFile } = require('../helpers/gd-files-upload');
 
 const uploadEditorFile = (app) => {
     const router = express.Router();
@@ -35,41 +36,44 @@ const uploadEditorFile = (app) => {
         async (req, res) => {
             try {
                 const file = req.file;
-
                 let { data: fileData } = req.body;
+                const successResponse = {
+                    success: 1,
+                    file: {},
+                };
+                const errorResponse = { success: 0, file: {} };
 
                 fileData = JSON.parse(fileData);
-                const token = fileData.token;
-
-                if (!token) return res.json({ success: 0, file: {} });
-                const isValid = await isValidToken(token);
-
-                if (!isValid) return res.json({ success: 0, file: {} });
-
-                //upload file to cloud
-                const uploadPreset = 'dev-tests';
-                const folder = `${uploadPreset}\/user-5ede1e7d2acb276b2d814bc4/files/`;
-
-                const response = await cloudinary.uploader.upload(file.path, {
-                    upload_preset: uploadPreset,
-                    folder: folder,
-                    resource_type: 'raw',
-                    use_filename: true,
-                });
-
-                const { url, bytes } = response;
-
-                if (url) {
-                    await unlink(file.path);
-                    console.log(`successfully deleted file: ${fileName}`);
-                }
-
                 const {
                     parentId,
                     parentUrl,
                     owner,
                     additional_params,
+                    token,
                 } = fileData;
+
+                const isValid = checkIfAuthenticated(token);
+                if (!isValid) return res.json(errorResponse);
+
+                const userId = '5ede1e7d2acb276b2d814bc4';
+
+                const response = await uploadToGoogleDrive({
+                    userId,
+                    filePath: file.path,
+                    fileName,
+                });
+
+                const isFileUploaded =
+                    Object.keys(response).length > 0 && response.status_id == 0;
+
+                if (!isFileUploaded) {
+                    return res.status(500).json(errorResponse);
+                }
+
+                deleteTempFile(file.path);
+
+                //store file on files table
+                const { url, size } = response;
 
                 await File.createFile({
                     parentId,
@@ -79,13 +83,14 @@ const uploadEditorFile = (app) => {
                     fileName,
                     fileUrl: url,
                 });
+
                 /* console.log(uploadedResponse, 'uploadedResponse'); */
                 return res.send({
-                    success: 1,
+                    ...successResponse,
                     file: {
-                        url: url,
+                        url,
                         name: fileName,
-                        size: bytes,
+                        size,
                     },
                 });
             } catch (error) {
@@ -94,6 +99,28 @@ const uploadEditorFile = (app) => {
             }
         }
     );
+};
+
+const checkIfAuthenticated = async (token) => {
+    if (!token) return res.json(errorResponse);
+    const isValid = await isValidToken(token);
+    return isValid;
+};
+
+const deleteTempFile = async (filePath) => {
+    await unlink(filePath);
+    console.log(`successfully deleted file: ${filePath}`);
+};
+
+const uploadToGoogleDrive = async ({ userId, filePath, fileName }) => {
+    try {
+        const folder = 'editor-files';
+        const response = await uploadFile(userId, folder, filePath, fileName);
+        return response;
+    } catch (error) {
+        console.log(error);
+        return new Error('Error on uploadToGoogleDrive()');
+    }
 };
 
 module.exports = uploadEditorFile;

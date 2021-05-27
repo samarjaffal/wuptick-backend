@@ -172,7 +172,7 @@ const generatePublicUrl = async (fileId) => {
     try {
         const response = await drive.files.get({
             fileId,
-            fields: 'webViewLink, webContentLink',
+            fields: 'webViewLink, webContentLink, size',
         });
 
         return response.data;

@@ -38,7 +38,7 @@ app.get('/test-googleauth', async (req, res) => {
         '5ede1e7d2acb276b2d814bc4',
         userfolder,
         'photo.jpg',
-        'test5.jpg'
+        'test12.jpg'
     );
     res.send('hi 2');
 });
