@@ -57,7 +57,7 @@ const uploadFile = async (
         //get user configuration folders
         const userConfig = await getUserFolders(userId);
 
-        console.log(userConfig, 'userConfig');
+        // console.log(userConfig, 'userConfig');
 
         count++;
 
@@ -77,7 +77,7 @@ const uploadFile = async (
         }
 
         const { folders } = userConfig;
-        console.log(folders, 'folders');
+        //console.log(folders, 'folders');
 
         //check if user has a root folder
         const userParentFolderId = await checkRootFolderForUser(
@@ -93,7 +93,7 @@ const uploadFile = async (
             userParentFolderId
         );
 
-        console.log(folderId, 'folderId');
+        //console.log(folderId, 'folderId');
 
         //upload file to google drive
         const response = await googledrive.uploadFile(
@@ -102,7 +102,7 @@ const uploadFile = async (
             folderId
         );
 
-        console.log(response);
+        //console.log(response);
 
         const { id: fileId } = response;
 

@@ -8,7 +8,6 @@ const refreshToken = require('./routes/refreshToken');
 const confirmRegistration = require('./routes/confirmRegistration');
 const uploadEditorImage = require('./routes/uploadEditorImage');
 const uploadEditorFile = require('./routes/uploadEditorFile');
-const { uploadFile } = require('./helpers/gd-files-upload');
 const app = express();
 
 app.use(
@@ -31,17 +30,6 @@ uploadEditorImage(app);
 
 //upload file from editor
 uploadEditorFile(app);
-
-app.get('/test-googleauth', async (req, res) => {
-    const userfolder = 'testFolder';
-    uploadFile(
-        '5ede1e7d2acb276b2d814bc4',
-        userfolder,
-        'photo.jpg',
-        'test12.jpg'
-    );
-    res.send('hi 2');
-});
 
 const isAuth = require('./middleware/is-auth');
 app.use(isAuth);

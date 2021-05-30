@@ -55,7 +55,7 @@ const uploadEditorFile = (app) => {
                 const isValid = checkIfAuthenticated(token);
                 if (!isValid) return res.json(errorResponse);
 
-                const userId = '5ede1e7d2acb276b2d814bc4';
+                const userId = owner._id;
 
                 const response = await uploadToGoogleDrive({
                     userId,
