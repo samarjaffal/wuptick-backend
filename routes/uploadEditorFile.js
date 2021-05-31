@@ -1,11 +1,15 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
 const File = require('../helpers/file');
 const { unlink } = require('fs').promises;
 const { isValidToken } = require('../functions/auth');
-const { cloudinary } = require('../utils/cloudinary');
 const { uploadFile } = require('../helpers/gd-files-upload');
+
+const successResponse = {
+    success: 1,
+    file: {},
+};
+const errorResponse = { success: 0, file: {} };
 
 const uploadEditorFile = (app) => {
     const router = express.Router();
@@ -37,11 +41,6 @@ const uploadEditorFile = (app) => {
             try {
                 const file = req.file;
                 let { data: fileData } = req.body;
-                const successResponse = {
-                    success: 1,
-                    file: {},
-                };
-                const errorResponse = { success: 0, file: {} };
 
                 fileData = JSON.parse(fileData);
                 const {
