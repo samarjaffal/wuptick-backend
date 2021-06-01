@@ -42,6 +42,7 @@ const uploadFile = async (
     folderName = 'default',
     filePath,
     fileName,
+    base64 = false,
     count = 0
 ) => {
     try {
@@ -99,7 +100,8 @@ const uploadFile = async (
         const response = await googledrive.uploadFile(
             fileName,
             filePath,
-            folderId
+            folderId,
+            base64
         );
 
         //console.log(response);

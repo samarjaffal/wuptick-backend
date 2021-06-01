@@ -1,13 +1,9 @@
 const mime = require('mime-types');
+const stream = require('stream');
 const fs = require('fs');
 const { config } = require('../config/index');
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
-const {
-    getUserFolders,
-    initUserFolder,
-    saveFolderForUser,
-} = require('../helpers/gd-user-folders');
 
 //to remove
 const path = require('path');
@@ -134,7 +130,7 @@ const insertPermission = async (fileId, type = 'anyone', role = 'reader') => {
  * @param {String} filePath Path where is located the file.
  * @param {String} parentId Parent folder where will be uploaded the file.
  */
-const uploadFile = async (fileName, filePath, parentId) => {
+const uploadFile = async (fileName, filePath, parentId, base64 = false) => {
     const auth = authorize();
     const drive = google.drive({ version: 'v3', auth });
 
@@ -148,10 +144,7 @@ const uploadFile = async (fileName, filePath, parentId) => {
             parents: [parentId],
         };
 
-        const media = {
-            mimeType: mime.lookup(filePath),
-            body: fs.createReadStream(filePath),
-        };
+        const media = handleMediaObject(base64, filePath);
 
         const response = await drive.files.create({
             resource: fileMetadata,
@@ -187,6 +180,32 @@ const getFileLinks = async (fileId) => {
     const data = await generatePublicUrl(fileId);
     console.log(data, 'getFileLinks');
     return data;
+};
+
+const handleMediaObject = (base64 = false, filePath) => {
+    let media = {};
+
+    console.log('hola');
+
+    if (!base64) {
+        media = {
+            mimeType: mime.lookup(filePath),
+            body: fs.createReadStream(filePath),
+        };
+    } else {
+        //create buffer with base64 img
+        filePath = filePath.split(/,(.+)/)[1];
+        const buf = new Buffer.from(filePath, 'base64');
+        const bs = new stream.PassThrough();
+        bs.end(buf);
+
+        media = {
+            mimeType: 'image/png',
+            body: bs,
+        };
+    }
+
+    return media;
 };
 
 module.exports = {

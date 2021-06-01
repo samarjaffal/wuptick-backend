@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const { uploadImage } = require('../utils/cloudinary');
 const mongoDB = new MongoLib();
 const crudHelper = require('./crud-helper');
+const { uploadFile } = require('./gd-files-upload');
 const collection = 'users';
 
 const getUserInfo = async (userId) => {
@@ -45,17 +46,19 @@ const toggleFavTask = async (state, userId, taskId) => {
     }
 };
 
-const updateAvatar = async (imgStr, userId) => {
+const updateAvatar = async (imgStr, fileName, userId) => {
     try {
-        const uploadPresent = 'dev-tests';
-        const folder = `${uploadPresent}\/user-${userId}/my-avatars/`;
-        const uploadedResponse = await uploadImage(
+        const folder = 'avatars';
+        const base64 = true;
+        const uploadResponse = await uploadFile(
+            userId,
+            folder,
             imgStr,
-            uploadPresent,
-            folder
+            fileName,
+            base64
         );
 
-        const { url } = uploadedResponse;
+        const { url } = uploadResponse;
 
         if (url) {
             const input = { avatar: url };
