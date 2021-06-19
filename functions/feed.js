@@ -21,22 +21,54 @@ let lastDataObject = {
 };
 const LIMIT_REGISTERS = 20;
 
-const generateLastActivity = async (_teamId) => {
-    let projectIds;
-    let taskLists, taskIds;
-
-    let logs, sortedLogs, taskLogs, projectLogs, commentLogs;
+const generateLastActivity = async (userId) => {
+    let sortedLogs;
 
     try {
-        const teamId = ObjectID(_teamId);
 
+        //get current user
+        const user = await mongoDB.get('users', userId);
+
+        if (!user) throw new Error('No user found');
+
+        //select team ids from user
+        const { teams: teamIds } = user;
+
+
+        const query = { _id: { $in: teamIds } };
+        const teams = await mongoDB.getAll('teams', query);
+        //console.log(teams, "teams");
+
+        if (teams.length === 0) return null;
+
+        let logs = [];
+        for (const team of teams) {
+            let log = await getLastActivityForATeam(team);
+            logs.push(log);
+        }
+
+        //logs.push(...await Promise.all(teamPromises));
+        sortedLogs = sortArrayByDate(logs.flat(), 'dateFilter');
+        // /console.log(await Promise.all(teamPromises));
+        return sortedLogs;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+};
+
+const getLastActivityForATeam = async (team) => {
+    let projectIds;
+    let logs, taskLogs, projectLogs, commentLogs;
+
+    try {
         //get team
-        team = await mongoDB.get('teams', teamId);
+        //team = await mongoDB.get('teams', teamId);
 
         //get projects from team
         projectIds = team.projects;
         projects = await getProjects(projectIds);
-
+        // console.log({ team: team.name, projects });
         modules = await getModulesWithProjectIds(projectIds);
         /* console.log(modules, 'modules'); */
 
@@ -52,16 +84,16 @@ const generateLastActivity = async (_teamId) => {
         /* console.log(projectLogs, 'projectLogs'); */
         commentLogs = await generateLog(taskComments, 'comment');
         /* console.log(commentLogs, 'commentLogs'); */
-
         logs = [...taskLogs, ...projectLogs, ...commentLogs];
-        sortedLogs = sortArrayByDate(logs, 'dateFilter');
+        //sortedLogs = sortArrayByDate(logs, 'dateFilter');
 
-        return sortedLogs || null;
+        return logs || [];
     } catch (error) {
         console.error(error);
-        return null;
+        throw new Error(error);
     }
-};
+
+}
 
 const getLastDataFromCollection = async ({
     ids,
