@@ -45,6 +45,17 @@ module.exports = {
         return deletedId || null;
     },
 
+    softDelete: async (collection, id, name) => {
+        let deletedId;
+        try {
+            deletedId = await mongoDB.update(collection, id, { deleted_at: new Date() });
+        } catch (error) {
+            console.error(error);
+            throw new Error(`Error on soft delete ${name}: ${id} on ${collection}`);
+        }
+        return deletedId || null;
+    },
+
     addSet: async (collection, id, _operator, name) => {
         let document;
         try {
