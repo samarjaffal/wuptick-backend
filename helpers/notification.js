@@ -20,7 +20,7 @@ module.exports = {
     getNotifications: async (userId) => {
         let notifications;
         try {
-            const query = { recipient: ObjectID(userId) };
+            const query = { recipient: ObjectID(userId), hide: false };
             const sort = { created_at: -1 };
             notifications = await mongoDB.getAll(
                 collection,
@@ -116,4 +116,20 @@ module.exports = {
             return false;
         }
     },
+
+
+    hideNotificationsByTaskIds: async (taskIds) => {
+        try {
+            taskIds = taskIds.map((id) => ObjectID(id));
+            let query = { external_id: { $in: taskIds } };
+            let operator = {
+                $set: { hide: true },
+            };
+            await mongoDB.updateMany(collection, query, operator);
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
 };
