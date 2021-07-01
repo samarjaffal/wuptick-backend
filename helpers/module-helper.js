@@ -2,6 +2,10 @@ const MongoLib = require('../lib/db/mongo');
 const mongoDB = new MongoLib();
 const mongoHelper = require('./mongo-helper');
 const crudHelper = require('./crud-helper');
+const Notification = require('./notification');
+const Module = require('../Models/module');
+
+
 const { ObjectID } = require('mongodb');
 
 const collection = 'modules';
@@ -34,6 +38,18 @@ module.exports = {
             console.error(error);
         }
         return module || {};
+    },
+
+    getModules: async (projectId) => {
+        let modules;
+        try {
+            const query = { project: ObjectID(projectId) };
+            modules = await mongoDB.getAll(collection, query);
+        } catch (error) {
+            console.error(error);
+        }
+
+        return modules || [];
     },
 
     saveTaskListsOrder: async (moduleId, taskLists) => {
@@ -145,4 +161,56 @@ module.exports = {
 
         return module._id;
     },
+
+
+    deleteModule: async (moduleId) => {
+        try {
+
+            let module, deletedId;
+
+            deletedId = await crudHelper.delete(collection, moduleId, "module");
+
+            return deletedId || moduleId;
+        } catch (error) {
+            console.error(error);
+        }
+
+    },
+
+
+    softDeleteModule: async (moduleId) => {
+        try {
+
+
+            const moduleModel = new Module(collection);
+
+            let module = await moduleModel.get(moduleId);
+
+            if (!module) throw new Error('Can\'t delete the module');
+
+            let deletedId = await moduleModel.softDelete(moduleId);
+
+            const { task_lists: lists } = module;
+
+            if (lists.length > 0) await hideNotificationTasksRelatedToModule(lists);
+
+            return deletedId || moduleId;
+        } catch (error) {
+            console.error(error);
+        }
+
+    },
+
+
+    hideNotificationTasksRelatedToModule: async (lists) => {
+
+        try {
+            const taskIds = lists.map((list) => list.tasks).flat();
+            console.log({ taskIds })
+            if (taskIds.length > 0) await Notification.hideNotificationsByTaskIds(taskIds);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
 };

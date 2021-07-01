@@ -5,6 +5,7 @@ const config = {
     dbUser: process.env.DB_USER,
     dbPassword: process.env.DB_PASSWORD,
     dbName: process.env.DB_NAME,
+    dbTestName: process.env.DB_TEST_NAME,
     dbHost: process.env.DB_HOST,
     dbPort: process.env.DB_PORT || 3000,
     secret: process.env.S_KEY,
