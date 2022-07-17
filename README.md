@@ -3,7 +3,7 @@ Wuptick es una aplicación web pensada para la gestión de proyectos, tareas y e
 Este repositorio contiene el código perteneciente al back de la app.
 
 ## Tecnologías usadas
-Fue desarrollado basado en el stack MERN. En el front se utilizó lo siguiente:
+Fue desarrollado basado en el stack MERN. En el back se utilizó lo siguiente:
   - Node.js y Express
   - Graphql
   - NodeMailer para envío de correos
